@@ -12,6 +12,8 @@ export type Candidate = {
   homepageUrl: string
   researchStatus: ResearchStatus
   progressNote: string
+  /** The one plan research evaluated, e.g. "Suite Team". Empty until researched. */
+  planBasis: string
   jobId: string
   error: string
 }
@@ -34,6 +36,7 @@ export const candidatesSchema: CollectionSchema = {
       default: 'idle',
     },
     { name: 'progressNote', storage: 'text', interpretation: plain, maxLength: 200, default: '' },
+    { name: 'planBasis', storage: 'text', interpretation: plain, maxLength: 200, default: '' },
     { name: 'jobId', storage: 'text', interpretation: plain, default: '' },
     { name: 'error', storage: 'text', interpretation: plain, maxLength: 500, default: '' },
   ],

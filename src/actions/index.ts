@@ -2,6 +2,7 @@ import { enqueueJob } from 'deepspace/worker'
 import type { ActionHandler } from 'deepspace/worker'
 import type { Env } from '../../worker'
 import { createDecision } from './create-decision'
+import { startResearch } from './start-research'
 
 /**
  * Server actions run with per-record RBAC OFF (see src/server/action-routes.ts).
@@ -9,6 +10,7 @@ import { createDecision } from './create-decision'
  */
 export const actions: Record<string, ActionHandler<Env>> = {
   createDecision,
+  startResearch,
 
   /**
    * TEMPORARY platform probe: create a probe record owned by the caller, then
