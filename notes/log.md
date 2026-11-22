@@ -63,7 +63,7 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
   - Model scores cluster at 4–5, so totals separate weakly. Expected; user corrections and weights are the next step.
 
 - Second run (after the prompt change):
-  - Totals now shown with arithmetic: Help Scout 3 × $25 = $75, Zendesk 3 × $19 = $57, Freshdesk 3 × $19 = $57. All 16 cells "Quote verified".
+  - Totals now shown with arithmetic: Help Scout 3 × $25 = $75, Zendesk 3 × $19 = $57, Freshdesk 3 × $19 = $57. All 12 cells "Quote verified".
   - New problem: Zendesk's price cell uses the $19 plan, but its knowledge-base cell quotes the Suite Team plan (single help center, ~$55). Each cell is answered on its own, so cells can describe different plans, and the first run used $55. Quotes are real, but the column is inconsistent.
   - Scores went to almost all 5/5 (totals 5, 5, 4.53), so the model's scores barely separate the options.
 - Fix for the plan mix-up (my call: fix now rather than leave it to manual edits):
@@ -106,7 +106,7 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 - Hit while testing: the email's "See the full comparison" link gave a 404. Cause: I sent it from the local dev server, but the link pointed at the deployed site, which didn't have the /s/ page yet (not deployed) and doesn't have local data anyway. → Emails now link to the origin the page was opened on, accepted only if it is localhost or the deployed app; anything else falls back to the deployed app so links can't be pointed elsewhere (3 tests).
 - Agent verified: tsc, eslint, 64/64 unit tests.
 - I verified: finalizing with a flagged cell asked for confirmation first, then opened the snapshot page. Clicking the [n] citations in the brief jumped to cells that support each sentence. With sharing off, the snapshot URL in a private window said the decision isn't available; with sharing on, the same window showed it signed out. Editing a cell and a weight on the working decision afterwards left the snapshot unchanged.
-- Email: the first test email arrived, but its "See the full comparison" link 404'd (fixed below; retest pending).
+- Email: the first test email arrived, but its "See the full comparison" link 404'd (fixed below). Retested after the fix: the link opens the snapshot.
 
 ## Cleanup and reviewers' sample
 
@@ -118,7 +118,6 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 - Agent verified: tsc, eslint, 67/67 unit tests.
 - I verified: marked my researched decision as the sample, signed in with a second account (Wendy Sheng), clicked "Try a ready-made example" → landed on that account's own copy: "Ready to review", all options "Research complete", plans in the headers, badges/scores/evidence intact, summary showing the sample's 1 needs-checking and 1 flagged cell.
 - Problem found: the copy's columns came out in a different order (Freshdesk, Zendesk, Help Scout instead of Help Scout, Zendesk, Freshdesk). Columns are ordered by creation time and the copy created options in whatever order the query returned. → Copy now creates options oldest first and criteria by their order (1 new test, 68/68). Re-checked: the copy's columns were still reversed. Likely cause: the original options were created within the same instant, so creation time can't order them. Left as a known cosmetic issue; the proper fix is an explicit `order` field on options, like criteria have.
-- The fix did not hold: a new copy still showed Freshdesk, Zendesk, Help Scout. Likely cause: the copied options are created within the same timestamp, so creation-time ordering ties. Cosmetic (headers name every column; scores don't depend on position), so I logged it instead of chasing it. Proper fix: an explicit column order on options (next steps).
 
 ## Polish
 
