@@ -29,7 +29,7 @@ export function Badge({ className, variant = 'default', size = 'default', ...pro
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full font-medium',
+        'inline-flex shrink-0 items-center whitespace-nowrap rounded-full font-medium',
         VARIANTS[variant],
         SIZES[size],
         className,

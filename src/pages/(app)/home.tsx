@@ -46,13 +46,13 @@ function DecisionList() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Your decisions</h1>
         <div className="flex flex-wrap items-start gap-2">
-          {info?.hasSample && records.length > 0 && <TrySampleButton variant="ghost" />}
           <Link to="/decisions/new" className={buttonVariants()}>
             New decision
           </Link>
+          {info?.hasSample && records.length > 0 && <TrySampleButton variant="outline" />}
         </div>
       </div>
 
@@ -81,13 +81,15 @@ function DecisionList() {
             <li key={r.recordId}>
               <Link
                 to={`/decisions/${r.recordId}`}
-                className="flex items-start justify-between gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent"
+                className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent"
               >
-                <div className="min-w-0">
-                  <p className="font-medium">{r.data.question}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Created {formatDate(r.createdAt)}</p>
+                <p className="font-medium">{r.data.question}</p>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant={s.variant} size="sm">
+                    {s.label}
+                  </Badge>
+                  <span>Created {formatDate(r.createdAt)}</span>
                 </div>
-                <Badge variant={s.variant}>{s.label}</Badge>
               </Link>
             </li>
           )

@@ -127,3 +127,4 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 - "Decisions" nav item stays highlighted on decision and snapshot pages.
 - Agent verified: tsc, eslint.
 - Secrets check (agent ran, I can re-run): `.dev.vars` is git-ignored (added `.env` / `.env.*` too, as a precaution); no env/credential files tracked; no JWT / `sk-` / AWS-key-shaped strings in tracked files or anywhere in git history. Integration calls go through the platform proxy, so the app holds no provider keys.
+- Mobile check (iPhone width, DevTools): status badges on the decision list wrapped to three lines inside the pill. → Badges never wrap (shared Badge component); list items now put the question on top with a meta row (badge · created date) under it; header buttons stack under the title on phones, "New decision" first.
