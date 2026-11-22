@@ -105,4 +105,15 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
   - Known tradeoff (from the design): 'published' lets signed-out visitors list all public snapshots, not just the linked one. IDs are unguessable and nothing sensitive is stored.
 - Hit while testing: the email's "See the full comparison" link gave a 404. Cause: I sent it from the local dev server, but the link pointed at the deployed site, which didn't have the /s/ page yet (not deployed) and doesn't have local data anyway. → Emails now link to the origin the page was opened on, accepted only if it is localhost or the deployed app; anything else falls back to the deployed app so links can't be pointed elsewhere (3 tests).
 - Agent verified: tsc, eslint, 64/64 unit tests.
-- I verified: _(finalize with an open item → confirm dialog → snapshot page; [n] citations jump to cells; link off → private window says unavailable; link on → private window shows it signed out; email arrives with working source links and "See the full comparison"; editing the decision afterwards doesn't change the snapshot)_
+- I verified: finalizing with a flagged cell asked for confirmation first, then opened the snapshot page. Clicking the [n] citations in the brief jumped to cells that support each sentence. With sharing off, the snapshot URL in a private window said the decision isn't available; with sharing on, the same window showed it signed out. Editing a cell and a weight on the working decision afterwards left the snapshot unchanged.
+- Email: the first test email arrived, but its "See the full comparison" link 404'd (fixed below; retest pending).
+
+## Cleanup and reviewers' sample
+
+- Removed the temporary probe (schema, action, job, /probe page). Its old rows stay in the database unused; harmless.
+- Agent: sample decision. The owner marks one researched decision as the sample ("Use as the reviewers' sample" on the decision page); any signed-in user gets "Try a ready-made example" on their home page, which copies it into their account. Actions `appInfo`, `markAsSample`, `copySample` (`src/actions/sample.ts`); copy logic `src/lib/sample-copy.ts` (3 tests: references remapped, owned by the caller, sample untouched).
+- Agent decisions:
+  - Copy, not share: a reviewer can edit, re-weight and finalize their copy without touching the original, and no research is run, so it costs nothing and is instant.
+  - Who may set the sample: the app owner or an admin; anyone under `deepspace dev` so it can be tested locally. One sample at a time.
+- Agent verified: tsc, eslint, 67/67 unit tests.
+- I verified: _(mark a decision as sample → badge; second account → "Try a ready-made example" → own copy with the table, badges, sources; edit the copy → original unchanged)_

@@ -10,6 +10,8 @@ import { Scale } from 'lucide-react'
 import { Badge, Button, EmptyState, buttonVariants } from '@/components/ui'
 import { DECISION_STATUS_LABEL, formatDate } from '@/components/decision/labels'
 import type { Decision } from '../../schemas/decisions-schema'
+import { TrySampleButton } from '@/components/decision/TrySampleButton'
+import { useAppInfo } from '@/lib/use-app-info'
 
 export default function HomePage() {
   const { isLoaded, isSignedIn } = useAuthProfileReady({ requireUser: true })
@@ -39,25 +41,37 @@ function SignedOutIntro() {
 
 function DecisionList() {
   const { records, status } = useQuery<Decision>('decisions', { orderBy: 'createdAt', orderDir: 'desc', limit: 50 })
+  const { info } = useAppInfo(true)
+  // The owner's own sample decision stays in their list; nobody else ever sees it there.
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Your decisions</h1>
-        <Link to="/decisions/new" className={buttonVariants()}>
-          New decision
-        </Link>
+        <div className="flex flex-wrap items-start gap-2">
+          {info?.hasSample && records.length > 0 && <TrySampleButton variant="ghost" />}
+          <Link to="/decisions/new" className={buttonVariants()}>
+            New decision
+          </Link>
+        </div>
       </div>
 
       {status === 'loading' && <p className="text-sm text-muted-foreground">Loading…</p>}
       {status === 'error' && <p className="text-sm text-destructive">Could not load your decisions. Try reloading.</p>}
 
       {status === 'ready' && records.length === 0 && (
-        <EmptyState
-          icon={<Scale />}
-          title="No decisions yet"
-          description="Start with a question, two or three options, and what matters to you."
-        />
+        <div className="flex flex-col items-center gap-4">
+          <EmptyState
+            icon={<Scale />}
+            title="No decisions yet"
+            description={
+              info?.hasSample
+                ? 'Open a ready-made example that is already researched, or start your own with a question, two or three options and what matters to you.'
+                : 'Start with a question, two or three options, and what matters to you.'
+            }
+          />
+          {info?.hasSample && <TrySampleButton variant="default" />}
+        </div>
       )}
 
       <ul className="flex flex-col gap-3">

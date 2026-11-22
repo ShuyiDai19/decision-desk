@@ -10,7 +10,6 @@
 import type { CollectionSchema } from 'deepspace/schema'
 import { usersSchema } from './schemas/users-schema'
 import { settingsSchema } from './schemas/admin-schema'
-import { probesSchema } from './schemas/probe-schema'
 import { decisionsSchema } from './schemas/decisions-schema'
 import { criteriaSchema } from './schemas/criteria-schema'
 import { candidatesSchema } from './schemas/candidates-schema'
@@ -29,5 +28,4 @@ export const schemas: CollectionSchema[] = [
   claimsSchema,
   snapshotsSchema,
   usageSchema,
-  probesSchema, // TEMPORARY platform probe
 ]

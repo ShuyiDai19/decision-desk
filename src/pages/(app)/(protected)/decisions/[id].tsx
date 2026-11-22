@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui'
 import { ComparisonTable } from '@/components/decision/ComparisonTable'
 import { ResearchControls } from '@/components/decision/ResearchControls'
 import { FinalizePanel } from '@/components/decision/FinalizePanel'
+import { SampleToggle } from '@/components/decision/SampleToggle'
 import { DECISION_STATUS_LABEL, formatDate } from '@/components/decision/labels'
 import type { Decision } from '../../../../schemas/decisions-schema'
 import type { Criterion } from '../../../../schemas/criteria-schema'
@@ -54,6 +55,7 @@ export default function DecisionPage() {
         <div className="flex items-center gap-3">
           <Badge variant={status.variant}>{status.label}</Badge>
           <span className="text-xs text-muted-foreground">Created {formatDate(decision.createdAt)}</span>
+          <SampleToggle decisionId={id} isSample={decision.data.isSample === 1} hasResearch={claims.records.length > 0} />
         </div>
         <h1 className="text-3xl font-bold tracking-tight">{decision.data.question}</h1>
         {decision.data.context && <p className="text-muted-foreground">{decision.data.context}</p>}
