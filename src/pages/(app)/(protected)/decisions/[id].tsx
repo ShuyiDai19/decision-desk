@@ -12,12 +12,14 @@ import { ArrowLeft } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { ComparisonTable } from '@/components/decision/ComparisonTable'
 import { ResearchControls } from '@/components/decision/ResearchControls'
+import { FinalizePanel } from '@/components/decision/FinalizePanel'
 import { DECISION_STATUS_LABEL, formatDate } from '@/components/decision/labels'
 import type { Decision } from '../../../../schemas/decisions-schema'
 import type { Criterion } from '../../../../schemas/criteria-schema'
 import type { Candidate } from '../../../../schemas/candidates-schema'
 import type { Claim } from '../../../../schemas/claims-schema'
 import type { Source } from '../../../../schemas/sources-schema'
+import type { Snapshot } from '../../../../schemas/snapshots-schema'
 
 export default function DecisionPage() {
   const { id = '' } = useParams()
@@ -26,6 +28,7 @@ export default function DecisionPage() {
   const candidates = useQuery<Candidate>('candidates', { where: { decisionId: id }, orderBy: 'createdAt', orderDir: 'asc' })
   const claims = useQuery<Claim>('claims', { where: { decisionId: id }, limit: 100 })
   const sources = useQuery<Source>('sources', { where: { decisionId: id }, limit: 100 })
+  const snapshots = useQuery<Snapshot>('snapshots', { where: { decisionId: id }, limit: 50 })
 
   const decision = decisions.records.find((r) => r.recordId === id)
 
@@ -74,6 +77,16 @@ export default function DecisionPage() {
             />
           )}
         </section>
+
+        {claims.records.length > 0 && (
+          <FinalizePanel
+            decisionId={id}
+            criteria={criteria.records}
+            candidates={candidates.records}
+            claims={claims.records}
+            snapshots={snapshots.records}
+          />
+        )}
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import type { ActionHandler } from 'deepspace/worker'
 import type { Env } from '../../worker'
 import { createDecision } from './create-decision'
 import { startResearch } from './start-research'
+import { emailSnapshot, finalizeDecision, setSnapshotVisibility } from './finalize'
 
 /**
  * Server actions run with per-record RBAC OFF (see src/server/action-routes.ts).
@@ -11,6 +12,9 @@ import { startResearch } from './start-research'
 export const actions: Record<string, ActionHandler<Env>> = {
   createDecision,
   startResearch,
+  finalizeDecision,
+  setSnapshotVisibility,
+  emailSnapshot,
 
   /**
    * TEMPORARY platform probe: create a probe record owned by the caller, then

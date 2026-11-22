@@ -92,3 +92,17 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 - Cosmetic, left as is: some quotes include markdown from Exa's page text (e.g. "- ##### Email Manage customer emails as a team.").
 - Hit while testing: "research limit reached" after ~5 runs. Cause: I was signed into the app with a different Google account from the one that owns the app (the CLI / deploy account), so I got the normal 3-runs/day user limit instead of the owner's 20. The quota worked as designed.
 - Fix: under `deepspace dev` (detected by ALLOW_DEBUG_ROUTES=true, which only local dev sets) the research limit is 50/day for anyone, so testing with a second account isn't blocked. Deployed limits unchanged: 3/day per user, 20 for the owner.
+
+## Finalize, share, email
+
+- Agent: `finalizeDecision` / `setSnapshotVisibility` / `emailSnapshot` actions (`src/actions/finalize.ts`); pure snapshot + brief module `src/lib/brief.ts` (9 tests); recipient parsing `src/lib/recipients.ts` (4 tests); "Decide" panel with saved versions on the decision page; snapshot page `/s/:id` with brief, frozen table and owner share/email controls.
+- Agent decisions:
+  - The snapshot freezes everything (cells, quotes, sources, weights, scores) as JSON, so shared links and emails never change when the working decision is edited. Re-finalizing makes version 2.
+  - The brief is generated only from the frozen table; every fact must cite a numbered cell like [3], which links to that cell (and in email, to its source). Citations to non-existent cells, links and HTML are stripped. Flagged / needs-checking cells must go under "Still to verify".
+  - If the AI brief fails, a template brief is used, so finalizing never blocks on the model.
+  - The chosen option defaults to the leader but the user can pick any; open items prompt a confirmation, not a block.
+  - Email: self + up to 3 teammates, confirmed on screen first; sending turns on the share link (the email links to it); one send per version; reply-to is the author.
+  - Known tradeoff (from the design): 'published' lets signed-out visitors list all public snapshots, not just the linked one. IDs are unguessable and nothing sensitive is stored.
+- Hit while testing: the email's "See the full comparison" link gave a 404. Cause: I sent it from the local dev server, but the link pointed at the deployed site, which didn't have the /s/ page yet (not deployed) and doesn't have local data anyway. → Emails now link to the origin the page was opened on, accepted only if it is localhost or the deployed app; anything else falls back to the deployed app so links can't be pointed elsewhere (3 tests).
+- Agent verified: tsc, eslint, 64/64 unit tests.
+- I verified: _(finalize with an open item → confirm dialog → snapshot page; [n] citations jump to cells; link off → private window says unavailable; link on → private window shows it signed out; email arrives with working source links and "See the full comparison"; editing the decision afterwards doesn't change the snapshot)_
