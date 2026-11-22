@@ -11,9 +11,23 @@ import type { CollectionSchema } from 'deepspace/schema'
 import { usersSchema } from './schemas/users-schema'
 import { settingsSchema } from './schemas/admin-schema'
 import { probesSchema } from './schemas/probe-schema'
+import { decisionsSchema } from './schemas/decisions-schema'
+import { criteriaSchema } from './schemas/criteria-schema'
+import { candidatesSchema } from './schemas/candidates-schema'
+import { sourcesSchema } from './schemas/sources-schema'
+import { claimsSchema } from './schemas/claims-schema'
+import { snapshotsSchema } from './schemas/snapshots-schema'
+import { usageSchema } from './schemas/usage-schema'
 
 export const schemas: CollectionSchema[] = [
   usersSchema,
   settingsSchema,
+  decisionsSchema,
+  criteriaSchema,
+  candidatesSchema,
+  sourcesSchema,
+  claimsSchema,
+  snapshotsSchema,
+  usageSchema,
   probesSchema, // TEMPORARY platform probe
 ]
