@@ -1,50 +1,40 @@
 /**
- * Background-job handler — invoked by AppJobRoom (worker.ts) for every
- * job picked up from the queue. Dispatch on `job.type` and return a
- * result (captured as `job.result`) or throw to fail (retried up to
- * `maxAttempts`, then permanently marked failed).
+ * Background-job handler — invoked by AppJobRoom (worker.ts) for every job.
+ * Dispatch on `job.type`; return a result or throw to fail.
  *
- * Use this for any work that needs to outlive the HTTP response:
- *   - AI generation that exceeds Cloudflare's 30-second waitUntil window
- *   - Export / render pipelines
- *   - Bulk imports, fan-out side effects
- *
- * Enqueue from a client with the `useJobs(roomId)` hook, or from
- * worker-side code (an HTTP route, an action, a cron task) with
- * `enqueueJob(env.JOB_ROOMS, \`app:${env.DEEPSPACE_APP_ID}\`, type, payload)`.
- *
- * Long-running progress / checkpoint guidance:
- *   - `ctx.progress(0..1, msg?)` publishes a real-time update over the
- *     room's WebSocket so subscribers see progress without polling.
- *   - `ctx.continue(state, { afterMs })` yields and resumes on the next
- *     alarm with `job.resumeFrom = state` — use this for work that
- *     exceeds the 15-minute per-alarm wall-time ceiling.
- *   - `ctx.signal` is an AbortSignal that fires when a client cancels;
- *     forward it to `fetch` and check `.aborted` at loop suspension
- *     points.
- *
- * Example:
- *
- *   export async function runJob(job: Job, ctx: JobContext, env: Env) {
- *     switch (job.type) {
- *       case 'ai-summarize': {
- *         const { text } = job.payload as { text: string }
- *         ctx.progress(0.1, 'starting')
- *         const summary = await summarize(text, { signal: ctx.signal })
- *         return { summary }
- *       }
- *       default:
- *         throw new Error(`Unknown job type: ${job.type}`)
- *     }
- *   }
+ * JobContext has no record API, so jobs reach records through the SDK's
+ * buildCronContext, which acts as the app owner (RBAC off). Jobs must only
+ * touch records named in their own payload, which a server action wrote.
  */
 
+import { buildCronContext } from 'deepspace/worker'
 import type { Job, JobContext } from 'deepspace/worker'
+import type { Env } from '../worker'
 
-export async function runJob(
-  _job: Job,
-  _ctx: JobContext,
-  _env: unknown,
-): Promise<void> {
-  // No-op — implement your job handlers here. Dispatch on `_job.type`.
+const sleep = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    const t = setTimeout(resolve, ms)
+    signal.addEventListener('abort', () => {
+      clearTimeout(t)
+      reject(new Error('canceled'))
+    })
+  })
+
+export async function runJob(job: Job, ctx: JobContext, env: Env): Promise<unknown> {
+  switch (job.type) {
+    // TEMPORARY platform probe: three visible steps, 2 seconds apart.
+    case 'probe': {
+      const { probeId } = job.payload as { probeId: string }
+      const app = buildCronContext(env, env.OWNER_USER_ID, `app:${env.DEEPSPACE_APP_ID}`)
+      for (let step = 1; step <= 3; step++) {
+        await app.records.update('probes', probeId, { status: `step ${step} of 3`, step })
+        ctx.progress(step / 3, `step ${step} of 3`)
+        if (step < 3) await sleep(2000, ctx.signal)
+      }
+      await app.records.update('probes', probeId, { status: 'done', step: 3 })
+      return { probeId }
+    }
+    default:
+      throw new Error(`Unknown job type: ${job.type}`)
+  }
 }
