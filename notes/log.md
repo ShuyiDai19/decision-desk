@@ -116,4 +116,14 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
   - Copy, not share: a reviewer can edit, re-weight and finalize their copy without touching the original, and no research is run, so it costs nothing and is instant.
   - Who may set the sample: the app owner or an admin; anyone under `deepspace dev` so it can be tested locally. One sample at a time.
 - Agent verified: tsc, eslint, 67/67 unit tests.
-- I verified: _(mark a decision as sample → badge; second account → "Try a ready-made example" → own copy with the table, badges, sources; edit the copy → original unchanged)_
+- I verified: marked my researched decision as the sample, signed in with a second account (Wendy Sheng), clicked "Try a ready-made example" → landed on that account's own copy: "Ready to review", all options "Research complete", plans in the headers, badges/scores/evidence intact, summary showing the sample's 1 needs-checking and 1 flagged cell.
+- Problem found: the copy's columns came out in a different order (Freshdesk, Zendesk, Help Scout instead of Help Scout, Zendesk, Freshdesk). Columns are ordered by creation time and the copy created options in whatever order the query returned. → Copy now creates options oldest first and criteria by their order (1 new test, 68/68). Re-checked: the copy's columns were still reversed. Likely cause: the original options were created within the same instant, so creation time can't order them. Left as a known cosmetic issue; the proper fix is an explicit `order` field on options, like criteria have.
+- The fix did not hold: a new copy still showed Freshdesk, Zendesk, Help Scout. Likely cause: the copied options are created within the same timestamp, so creation-time ordering ties. Cosmetic (headers name every column; scores don't depend on position), so I logged it instead of chasing it. Proper fix: an explicit column order on options (next steps).
+
+## Polish
+
+- Landing page (`/`) replaced: it was still the scaffold placeholder ("A DeepSpace app with a static front door"), the first thing a reviewer sees. Now: what the product does, a static picture of one comparison row (verified quote vs. corrected cell), how it works in 4 steps, and an honest note that "Quote verified" means the quote is on the page, not that the summary is right. Still static and prerendered; kept the `static-landing` test id the scaffold's smoke tests use.
+- Display name "Decision Desk" everywhere (was the slug "decision-desk"); SEO title/description written; `noindex: true` since this is an evaluation project.
+- "Decisions" nav item stays highlighted on decision and snapshot pages.
+- Agent verified: tsc, eslint.
+- Secrets check (agent ran, I can re-run): `.dev.vars` is git-ignored (added `.env` / `.env.*` too, as a precaution); no env/credential files tracked; no JWT / `sk-` / AWS-key-shaped strings in tracked files or anywhere in git history. Integration calls go through the platform proxy, so the app holds no provider keys.

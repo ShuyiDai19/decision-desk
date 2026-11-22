@@ -68,6 +68,20 @@ describe('copySample', () => {
     expect(tables.get('decisions')!.find((r) => r.recordId === 'd0')!.data.isSample).toBe(1)
   })
 
+  it('copies options oldest first, so the columns keep their order', async () => {
+    const { store, tables } = fakeStore({
+      ...seed,
+      candidates: [
+        { recordId: 'c3', createdAt: '2026-11-22T00:00:03Z', data: { decisionId: 'd0', name: 'Freshdesk' } },
+        { recordId: 'c1', createdAt: '2026-11-22T00:00:01Z', data: { decisionId: 'd0', name: 'Help Scout' } },
+        { recordId: 'c2', createdAt: '2026-11-22T00:00:02Z', data: { decisionId: 'd0', name: 'Zendesk' } },
+      ] as never,
+    })
+    const { decisionId } = (await copySample(store, 'reviewer'))!
+    const names = tables.get('candidates')!.filter((r) => r.data.decisionId === decisionId).map((r) => r.data.name)
+    expect(names).toEqual(['Help Scout', 'Zendesk', 'Freshdesk'])
+  })
+
   it('returns null when no sample has been marked', async () => {
     const { store } = fakeStore({ ...seed, decisions: [seed.decisions[1]] })
     expect(await copySample(store, 'reviewer')).toBeNull()

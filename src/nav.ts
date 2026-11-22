@@ -13,10 +13,12 @@ export interface NavItem {
   label: string
   roles?: Role[]
   devOnly?: boolean
+  /** Other path prefixes that should highlight this item. */
+  alsoActiveOn?: string[]
 }
 
 export const nav: NavItem[] = [
-  { path: '/home', label: 'Decisions' },
+  { path: '/home', label: 'Decisions', alsoActiveOn: ['/decisions', '/s/'] },
   { path: '/settings', label: 'Settings' },
   // The /api-status debug page still exists — add
   // `{ path: '/api-status', label: 'API Status', devOnly: true }` to surface it.

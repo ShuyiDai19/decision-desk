@@ -25,13 +25,15 @@ import { APP_NAME } from './constants'
 declare const __DEEPSPACE_SITE_ORIGIN__: string | undefined
 
 export const seo = {
-  title: APP_NAME,
-  description: `${APP_NAME} is a real-time collaborative app.`,
+  title: `${APP_NAME} | Evidence-backed comparisons for team decisions`,
+  description:
+    'Compare two or three options on what matters to your team. Every cell quotes the official page it came from, so you can check it, correct it, and decide.',
   /** Public origin for canonical URLs, og:url, and the sitemap — no trailing
    *  slash. Replace with the custom domain once one is attached, e.g.
    *  'https://www.example.com'. */
   origin: typeof __DEEPSPACE_SITE_ORIGIN__ === 'string' ? __DEEPSPACE_SITE_ORIGIN__ : 'http://localhost',
   /** 1200×630 preview image, root-relative to public/ (e.g. '/og.png'). */
   // ogImage: '/og.png',
-  noindex: false,
+  // Built for an evaluation exercise, not for public search.
+  noindex: true,
 }

@@ -1,5 +1,5 @@
-/** App name — replaced by the CLI during scaffolding */
-export const APP_NAME = 'decision-desk'
+/** Display name shown in the UI and page titles. (Server code gets the app's slug from env.APP_NAME.) */
+export const APP_NAME = 'Decision Desk'
 
 /** Immutable app identity — data scope keys to this, so renames never
  *  strand your records.

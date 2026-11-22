@@ -10,7 +10,7 @@
  * Takes a minimal record-store interface so it can be tested with a fake.
  */
 
-type Row = { recordId: string; data: Record<string, unknown> }
+type Row = { recordId: string; data: Record<string, unknown>; createdAt?: string }
 type Result<T> = { success: true; data: T } | { success: false; error: string; code?: string }
 
 export interface SampleStore {
@@ -60,11 +60,13 @@ export async function copySample(store: SampleStore, userId: string): Promise<{ 
   })
 
   const criterionMap = new Map<string, string>()
-  for (const k of criteria) {
+  for (const k of [...criteria].sort((a, b) => Number(a.data.order) - Number(b.data.order))) {
     criterionMap.set(k.recordId, await create(store, 'criteria', { decisionId, ...pick(k.data, ['name', 'description', 'weight', 'order']) }))
   }
+  // Columns are shown in creation order, so copy options oldest first to keep the sample's column order.
+  const byCreated = (a: Row, b: Row) => (a.createdAt ?? '').localeCompare(b.createdAt ?? '')
   const candidateMap = new Map<string, string>()
-  for (const c of candidates) {
+  for (const c of [...candidates].sort(byCreated)) {
     candidateMap.set(
       c.recordId,
       await create(store, 'candidates', {
