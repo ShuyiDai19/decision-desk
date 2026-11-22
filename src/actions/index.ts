@@ -1,12 +1,15 @@
 import { enqueueJob } from 'deepspace/worker'
 import type { ActionHandler } from 'deepspace/worker'
 import type { Env } from '../../worker'
+import { createDecision } from './create-decision'
 
 /**
  * Server actions run with per-record RBAC OFF (see src/server/action-routes.ts).
  * Every action that touches existing records must check ownership itself.
  */
 export const actions: Record<string, ActionHandler<Env>> = {
+  createDecision,
+
   /**
    * TEMPORARY platform probe: create a probe record owned by the caller, then
    * enqueue a job that updates it step by step from the worker side.
