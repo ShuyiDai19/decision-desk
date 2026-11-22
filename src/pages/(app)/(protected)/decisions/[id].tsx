@@ -14,6 +14,7 @@ import { ComparisonTable } from '@/components/decision/ComparisonTable'
 import { ResearchControls } from '@/components/decision/ResearchControls'
 import { FinalizePanel } from '@/components/decision/FinalizePanel'
 import { SampleToggle } from '@/components/decision/SampleToggle'
+import { DeleteDecisionButton } from '@/components/decision/DeleteDecisionButton'
 import { DECISION_STATUS_LABEL, formatDate } from '@/components/decision/labels'
 import type { Decision } from '../../../../schemas/decisions-schema'
 import type { Criterion } from '../../../../schemas/criteria-schema'
@@ -52,10 +53,21 @@ export default function DecisionPage() {
     <div className="mx-auto max-w-5xl px-6 py-12">
       <BackLink />
       <header className="mb-10 flex flex-col gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Badge variant={status.variant}>{status.label}</Badge>
           <span className="text-xs text-muted-foreground">Created {formatDate(decision.createdAt)}</span>
           <SampleToggle decisionId={id} isSample={decision.data.isSample === 1} hasResearch={claims.records.length > 0} />
+          {decision.data.isSample !== 1 && (
+            <span className="ml-auto">
+              <DeleteDecisionButton
+                decisionId={id}
+                question={decision.data.question}
+                snapshotCount={snapshots.records.length}
+                sharedCount={snapshots.records.filter((s) => s.data.visibility === 'public').length}
+                disabled={candidates.records.some((c) => ['queued', 'searching', 'extracting'].includes(c.data.researchStatus))}
+              />
+            </span>
+          )}
         </div>
         <h1 className="text-3xl font-bold tracking-tight">{decision.data.question}</h1>
         {decision.data.context && <p className="text-muted-foreground">{decision.data.context}</p>}

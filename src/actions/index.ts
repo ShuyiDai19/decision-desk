@@ -4,6 +4,7 @@ import { createDecision } from './create-decision'
 import { startResearch } from './start-research'
 import { emailSnapshot, finalizeDecision, setSnapshotVisibility } from './finalize'
 import { appInfo, copySample, markAsSample } from './sample'
+import { deleteDecision } from './delete-decision'
 
 /**
  * Server actions run with per-record RBAC OFF (see src/server/action-routes.ts).
@@ -11,6 +12,7 @@ import { appInfo, copySample, markAsSample } from './sample'
  */
 export const actions: Record<string, ActionHandler<Env>> = {
   createDecision,
+  deleteDecision,
   startResearch,
   finalizeDecision,
   setSnapshotVisibility,

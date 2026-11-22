@@ -60,7 +60,7 @@ It proves the quote exists. **It does not prove the summary is right.** The mode
 
 ```
 src/schemas/          7 collections + shared ownerOnly() permission helper
-src/actions/          createDecision, startResearch, finalize/share/email, sample
+src/actions/          createDecision, deleteDecision, startResearch, finalize/share/email, sample
 src/jobs.ts           research.candidate job → src/research/run-candidate.ts
 src/research/         search planning, extraction prompt + parsing, quote verification
 src/lib/score.ts      weighted scoring (shared by the page and the snapshot)
@@ -95,7 +95,7 @@ Unit tests cover the parts where a silent bug would mislead a user:
 - the full research pipeline, against a fake store and scripted Exa/OpenAI replies
 - snapshot freezing and the brief's citations, HTML escaping and fallback
 - email recipients and the email link origin
-- copying the sample
+- copying the sample, and deleting a decision with everything it owns
 
 ## Known limitations
 
@@ -104,11 +104,10 @@ Unit tests cover the parts where a silent bug would mislead a user:
 - **Some quotes contain clutter** from page text extraction, such as glued words or markdown markers.
 - **Shared links:** public snapshots can be listed by anyone, not just the one they were linked to. IDs are unguessable and snapshots hold only public product facts.
 - **Copied samples** may show columns in a different order.
-- **No delete** for decisions yet.
 
 ## Next steps
 
 - Let users attach their own source to a cell, verified the same way as AI quotes.
 - Team review: invite teammates to a decision, each with their own weights, and show where they disagree.
 - A weekly job that re-reads pricing pages and flags cells whose quote no longer appears.
-- An explicit column order for options, and deleting decisions.
+- An explicit column order for options.

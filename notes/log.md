@@ -127,3 +127,14 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 - Agent verified: tsc, eslint.
 - Secrets check (agent ran, I can re-run): `.dev.vars` is git-ignored (added `.env` / `.env.*` too, as a precaution); no env/credential files tracked; no JWT / `sk-` / AWS-key-shaped strings in tracked files or anywhere in git history. Integration calls go through the platform proxy, so the app holds no provider keys.
 - Mobile check (iPhone width, DevTools): status badges on the decision list wrapped to three lines inside the pill. → Badges never wrap (shared Badge component); list items now put the question on top with a meta row (badge · created date) under it; header buttons stack under the title on phones, "New decision" first.
+
+## Delete a decision
+
+- Agent: `deleteDecision` action + cascade in `src/lib/delete-decision.ts` (3 tests), "Delete" on the decision page with a confirmation that says how many saved versions and shared links go with it.
+- Decisions (I asked for this feature; agent designed it, I reviewed):
+  - Server action with an ownership check; the browser still has no delete permission on any collection.
+  - Deletes snapshots too: "delete" means gone, so shared links stop working, and the confirmation says so.
+  - Children first, the decision last: if a step fails, the decision is still listed and deleting again finishes the job instead of leaving unreachable rows.
+  - Refused while research is running (jobs would write into deleted rows) and for the current reviewers' sample (the home-page example would break).
+- Agent verified: tsc, eslint, 71/71 unit tests.
+- I verified: deleted a decision with a shared snapshot → the confirmation said its shared link would stop working → after confirming, back on the list without it; the old share link then showed "This decision isn't available"; no Delete button on the reviewers' sample; Delete greyed out while research was running.
