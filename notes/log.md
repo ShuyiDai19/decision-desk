@@ -2,6 +2,8 @@
 
 Each entry: what the agent did · what I verified myself · what I changed or overruled.
 
+Entries are in order and are not rewritten afterwards. When a later entry replaces an earlier decision, the earlier one points forward with **Changed later**.
+
 ## Setup and platform checks (2026-11-21)
 
 **Setup**
@@ -102,7 +104,7 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
   - If the AI brief fails, a template brief is used, so finalizing never blocks on the model.
   - The chosen option defaults to the leader but the user can pick any; open items prompt a confirmation, not a block.
   - Email: self + up to 3 teammates, confirmed on screen first; sending turns on the share link (the email links to it); one send per version; reply-to is the author.
-  - Known tradeoff (from the design): 'published' lets signed-out visitors list all public snapshots, not just the linked one. IDs are unguessable and nothing sensitive is stored.
+  - Known tradeoff (from the design): 'published' lets signed-out visitors list all public snapshots, not just the linked one. IDs are unguessable and nothing sensitive is stored. **Changed later:** this turned out to be a real leak and was replaced by link-token sharing; see "Sharing by link instead of public listing" below.
 - Hit while testing: the email's "See the full comparison" link gave a 404. Cause: I sent it from the local dev server, but the link pointed at the deployed site, which didn't have the /s/ page yet (not deployed) and doesn't have local data anyway. → Emails now link to the origin the page was opened on, accepted only if it is localhost or the deployed app; anything else falls back to the deployed app so links can't be pointed elsewhere (3 tests).
 - Agent verified: tsc, eslint, 64/64 unit tests.
 - I verified: finalizing with a flagged cell asked for confirmation first, then opened the snapshot page. Clicking the [n] citations in the brief jumped to cells that support each sentence. With sharing off, the snapshot URL in a private window said the decision isn't available; with sharing on, the same window showed it signed out. Editing a cell and a weight on the working decision afterwards left the snapshot unchanged.
