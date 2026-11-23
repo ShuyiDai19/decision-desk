@@ -146,7 +146,9 @@ describe('recordFailure', () => {
   it('shows a retry on early attempts and a failure on the last one', async () => {
     const p = { decisionId: 'd1', candidateId: 'c1' }
     await recordFailure(deps(), p, new Error('Exa timeout'), false)
-    expect(store.tables.get('candidates')![0].data).toMatchObject({ researchStatus: 'queued', error: 'Exa timeout' })
+    expect(store.tables.get('candidates')![0].data).toMatchObject({ researchStatus: 'queued' })
+    // The stored error is the friendly sentence, not the raw message.
+    expect(store.tables.get('candidates')![0].data.error).toMatch(/took too long/)
     await recordFailure(deps(), p, new Error('Exa timeout'), true)
     expect(store.tables.get('candidates')![0].data).toMatchObject({ researchStatus: 'failed' })
     expect(store.tables.get('decisions')![0].data.status).toBe('reviewing')

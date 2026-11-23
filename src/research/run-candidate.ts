@@ -13,6 +13,7 @@
 import { buildMessages, parseExtraction, RESEARCH_MODEL, type ExtractionPage } from './extract'
 import { hostnameOf, pickOfficialDomain, planQueries, siteDomain } from './search'
 import { quoteAppearsIn } from './verify'
+import { friendlyResearchError } from './errors'
 import type { Decision } from '../schemas/decisions-schema'
 import type { Criterion } from '../schemas/criteria-schema'
 import type { Candidate, ResearchStatus } from '../schemas/candidates-schema'
@@ -215,7 +216,11 @@ export async function researchCandidate(payload: ResearchPayload, deps: Research
  * retry is coming.
  */
 export async function recordFailure(deps: ResearchDeps, payload: ResearchPayload, err: unknown, finalAttempt: boolean) {
-  const message = (err instanceof Error ? err.message : String(err)).slice(0, 500)
+  // The raw error goes to the server log (`npx deepspace logs`); the user sees a sentence they can act on.
+  console.error(
+    `[research] candidate=${payload.candidateId} final=${finalAttempt}: ${err instanceof Error ? err.message : String(err)}`,
+  )
+  const message = friendlyResearchError(err)
   if (finalAttempt) {
     await setCandidate(deps, payload.candidateId, 'failed', '', message)
     await finishDecisionIfSettled(deps, payload.decisionId)

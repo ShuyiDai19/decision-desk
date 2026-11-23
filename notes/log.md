@@ -138,3 +138,9 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
   - Refused while research is running (jobs would write into deleted rows) and for the current reviewers' sample (the home-page example would break).
 - Agent verified: tsc, eslint, 71/71 unit tests.
 - I verified: deleted a decision with a shared snapshot → the confirmation said its shared link would stop working → after confirming, back on the list without it; the old share link then showed "This decision isn't available"; no Delete button on the reviewers' sample; Delete greyed out while research was running.
+
+## Friendly research errors
+
+- Before: a failed option's card showed the raw error, e.g. "Integration call exa/search failed: …".
+- Agent: `src/research/errors.ts` maps raw errors to one actionable sentence (search failed, AI service down, unreadable AI answer, out of credits, rate-limited, timeout, couldn't save, option removed, cancelled; generic fallback). Most specific rule first, so "exa … payment required" says "credits", not "search failed". The raw error goes to the server log via `console.error` with the candidate id; the card only shows the sentence. 12 new tests; 83/83 pass; tsc and eslint clean.
+- I verified: _(forced a failure locally with an invalid model name → card shows the friendly sentence + Retry; raw error visible in the dev-server terminal; reverted)_
