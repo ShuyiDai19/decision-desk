@@ -8,6 +8,11 @@
  *
  * New signed-in users get the 'member' role (ROLE_DEFAULT in the SDK);
  * 'viewer' is given the same read access but no writes.
+ *
+ * 'admin' (the app owner gets it) has NO extra access to other people's
+ * rows: "only you can see your decisions" has to hold for the owner's account
+ * too, and the README and share panel promise exactly that. Admin-only
+ * features (setting the reviewers' sample) are checked in server actions.
  */
 
 import type { CollectionSchema } from 'deepspace/schema'
@@ -26,7 +31,14 @@ export function ownerOnly(writableFields: string[] = []): Permissions {
       delete: false,
       ...(canUpdate ? { writableFields } : {}),
     },
-    admin: { read: true, create: true, update: true, delete: true },
+    // Same as member on purpose; see the note above.
+    admin: {
+      read: 'own',
+      create: false,
+      update: canUpdate ? 'own' : false,
+      delete: false,
+      ...(canUpdate ? { writableFields } : {}),
+    },
   }
 }
 

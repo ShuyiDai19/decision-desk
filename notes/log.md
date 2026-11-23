@@ -26,7 +26,7 @@ Entries are in order and are not rewritten afterwards. When a later entry replac
 
 - Agent: wrote the 7 collections in `src/schemas/` with a shared `ownerOnly()` permission helper, and `src/lib/score.ts` with 10 unit tests.
 - Agent decisions I should be able to explain:
-  - Clients never create or delete rows; actions and jobs do. Clients only update listed fields on their own rows.
+  - Clients never create or delete rows; actions and jobs do. Clients only update listed fields on their own rows. **Changed later:** admin was left with full access here, which let the owner's account see everyone's decisions; see "The owner's account could see everyone's decisions" below.
   - `sources` / `claims` use an explicit `ownerId` (not `userBound`) because jobs run as the app owner.
   - Users cannot write `verification`, `quote` or `sourceId`, so an edited cell can't pose as a verified quote.
   - Total score is computed in code; missing scores are excluded and coverage (e.g. 3/5) is shown.
@@ -195,3 +195,11 @@ Entries are in order and are not rewritten afterwards. When a later entry replac
 - Agent checked each fact in code before writing it (billing default in `src/integrations.ts`; 2 Exa searches per option + 1 only without a website; OpenAI caps 3,000 / 1,200 output tokens; automatic retry at most once; manual retry only for failed options and free; one email per version) and read the CLI's own help for deploying a separate copy (`app init --new-id`, rename in wrangler.toml).
 - Reproduction: agent cloned the committed repo into a fresh directory and ran `npm ci`, `type-check`, `lint`, `test:unit` → all pass (96 tests). Found that npm 10.9 installs it fine; the npm 11.6 requirement is for scaffolding. `auth login` / `dev start` / `deploy` were run by me in the original working copy; the `--new-id` fork path is documented from `--help` and marked as not tried.
 - Next steps now: plan/price consistency → new source after a correction → explicit option order → team review → periodic re-research.
+
+## The owner's account could see everyone's decisions
+
+- I found: on the live site, signed in as the app owner, "Delete" on a "Ready to review" decision failed with `{"success":false,"error":"Decision not found.","code":"not_found"}` (from the Network tab), and the list count didn't change.
+- Cause (agent traced it through the SDK's `records.get` / `deleteRecord`): the owner account has the `admin` role, and `ownerOnly()` gave admin `read: true` (and create/update/delete) on every collection, copied from the scaffold's pattern. So the owner's "Your decisions" list also showed decisions that my second account had copied from the sample. The delete action correctly refused them because they weren't the caller's.
+- Bigger than the delete bug: the README and share panel say only the author can see a decision or snapshot, but admin could read, and through the browser even write, everyone's rows.
+- Fix: admin now has exactly the same access as a member on all 8 app collections. Admin-only features (setting the sample) were already checked in server actions. New `src/schemas/permissions.test.ts` (24 tests) pins the promises: admin = member, signed-out visitors read nothing, browsers never create or delete. These would have failed before. 117/117 tests, tsc, eslint, `lintSchemas` clean.
+- I verified: _(after deploy, the owner's list shows only the owner's decisions; deleting one of my own works; the second account still sees and can delete its own copies)_

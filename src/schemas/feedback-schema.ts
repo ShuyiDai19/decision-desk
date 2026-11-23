@@ -47,5 +47,6 @@ export const feedbackSchema: CollectionSchema = {
     ...ownerOnly(),
     viewer: { read: 'collaborator', create: false, update: false, delete: false },
     member: { read: 'collaborator', create: false, update: false, delete: false },
+    admin: { read: 'collaborator', create: false, update: false, delete: false },
   },
 }
