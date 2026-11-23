@@ -143,4 +143,4 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 
 - Before: a failed option's card showed the raw error, e.g. "Integration call exa/search failed: …".
 - Agent: `src/research/errors.ts` maps raw errors to one actionable sentence (search failed, AI service down, unreadable AI answer, out of credits, rate-limited, timeout, couldn't save, option removed, cancelled; generic fallback). Most specific rule first, so "exa … payment required" says "credits", not "search failed". The raw error goes to the server log via `console.error` with the candidate id; the card only shows the sentence. 12 new tests; 83/83 pass; tsc and eslint clean.
-- I verified: _(forced a failure locally with an invalid model name → card shows the friendly sentence + Retry; raw error visible in the dev-server terminal; reverted)_
+- I verified: set `RESEARCH_MODEL` to an invalid model name locally and ran research → after the automatic retry, each option's card showed the friendly message with a "Retry this option" button, and the raw error appeared in the dev-server terminal. Restored `gpt-5.4-mini` (checked with `git diff`) and retried an option; it completed.

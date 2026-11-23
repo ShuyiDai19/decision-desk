@@ -1,6 +1,8 @@
+# Output of `npx deepspace integrations info`, with the hard-to-read lines reworded in plain English.
+
 exa/search
   Search the web with Exa neural search, with optional content extraction and filters.
-  billing: metered at the provider's actual cost plus platform markup
+  billing: each call costs what Exa charges, plus a DeepSpace fee
 
 Input schema:
 {

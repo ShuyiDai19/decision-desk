@@ -1,6 +1,8 @@
+# Output of `npx deepspace integrations info`, with the hard-to-read lines reworded in plain English.
+
 openai/chat-completion
-  Generate text with an OpenAI model via the Chat Completions API. Free-tier pricing differs from paid-tier pricing. Standard pricing applies to: gpt-5.6-luna, gpt-5.4-mini, gpt-5.4-nano, gpt-4o-mini, gpt-4.1-mini, gpt-4.1-nano.
-  billing: metered at the provider's actual cost plus platform markup; free-tier pricing differs
+  Generates text with an OpenAI model (the Chat Completions API). Free accounts and paid accounts pay different prices. These models are charged the normal price: gpt-5.6-luna, gpt-5.4-mini, gpt-5.4-nano, gpt-4o-mini, gpt-4.1-mini, gpt-4.1-nano.
+  billing: each call costs what OpenAI charges, plus a DeepSpace fee; prices are different on the free tier
 
 Input schema:
 {

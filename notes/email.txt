@@ -1,5 +1,7 @@
+# Output of `npx deepspace integrations info`, with the hard-to-read lines reworded in plain English.
+
 email/send
-  Send a transactional email from DeepSpace Apps <notifications@updates.app.space>. Any from value is ignored; use reply_to for replies. Supports HTML or plain text, cc and bcc.
+  Sends an email. Every email is sent from DeepSpace Apps <notifications@updates.app.space>; anything you put in `from` is ignored. To have replies go to a real person, put their address in `reply_to`. The body can be HTML or plain text, and cc and bcc are supported.
   billing: $0.013 per request
 
 Input schema:
