@@ -14,7 +14,7 @@ The AI drafts and you decide. The interface is built so you can see exactly wher
 4. Under **Decide**, pick an option and **Finalize**. You get a snapshot with a brief whose `[n]` citations link to the supporting cells. Turn on the share link or email it.
 5. Open the link with a second account: it can answer **I agree** or **I have concerns**, and the author sees the responses live.
 
-To run research yourself: **New decision → Use an example → Create → Research these options**. Each signed-in user gets 3 research runs a day.
+To run research yourself: **New decision → Use an example → Create → Research these options**. Each signed-in user gets 3 research runs a day; see **Costs and limits**.
 
 ## How it works
 
@@ -47,6 +47,30 @@ Sharing is **by link**, not public publishing:
 - **Anyone you give the link to can view the decision, including your question and context, without signing in.** Treat the link like a document link: only send it to people who should see it.
 - Turning sharing off disables the link. Turning it on again creates a new link, so old links never work again. Emailing a brief turns sharing on and includes the link.
 - Teammates' feedback needs the current link's token, not just the snapshot ID.
+
+## Costs and limits
+
+**Who pays.** Every paid call is billed to the **app owner's** DeepSpace account, never to the person using the app. That's the platform's default "developer" billing; `src/integrations.ts` doesn't change it for Exa, OpenAI or email. Calls are charged at the provider's price plus a DeepSpace fee, and an email cost about $0.013 when this was built. Paid calls are made only by server actions and background jobs, never from the browser, and every one of them requires a signed-in user.
+
+**What one research run is.** One click of **Research these options** (or **Research again**) is one run. It researches the whole decision: one background job per option, so at most 3 jobs. Each job makes:
+- 2 Exa searches, with page text
+- 1 more Exa search, only if no website was given, to find the official site
+- 1 OpenAI extraction call, capped at 3,000 output tokens
+
+**Daily limit.** 3 runs per user per UTC day, and 20 for the app owner. The platform doesn't rate-limit Exa or OpenAI calls, so this cap is the app's only spending guard. Under `deepspace dev` the cap is 50, so you can test with several accounts.
+
+| Action | Uses a run? | Paid calls |
+|---|---|---|
+| Research these options / Research again | Yes | Up to 3 jobs, as above |
+| Automatic retry of a failed job (once) | No | The job's calls again |
+| **Retry this option** on a failed option | No | That one job's calls again |
+| Finalize | No | 1 OpenAI call for the brief, capped at 1,200 output tokens |
+| Email the brief | No | 1 email (up to 4 recipients); once per version |
+| Try a ready-made example, corrections, weights, feedback, delete | No | None |
+
+Retries don't count against the limit, because a failure isn't the user's fault. They still cost money. Two things bound that cost: automatic retry happens at most once per job, and manual retry is only offered for an option whose research has failed.
+
+**Email turns sharing on.** The email contains the decision's share link, so sending it turns sharing on if it was off. Anyone the email reaches, including anyone it's forwarded to, can open the decision, with its question and context, without signing in. Turning sharing off afterwards disables that link too.
 
 ## DeepSpace: what's used and why
 
@@ -85,17 +109,44 @@ notes/log.md          build log: what the agent did, what I verified, what chang
 
 ## Run locally
 
-Requires Node 22.15+ (or 24 / 26) and npm 11.6+.
+Requires Node 22.15+ (or 24 / 26). npm 11.6+ is required to scaffold a new DeepSpace app; installing this repo also worked with npm 10.9.
 
 ```bash
-npm install
-npx deepspace auth login
-npx deepspace dev start      # http://localhost:5173
-npm run test:unit            # unit tests
-npx tsc --noEmit             # type check
+git clone https://github.com/ShuyiDai19/decision-desk.git
+cd decision-desk
+npm ci
+npx deepspace auth login      # opens a browser; GitHub or Google sign-in
+npx deepspace dev start       # http://localhost:5173
 ```
 
-Under `deepspace dev` the research limit is raised to 50/day so you can test with several accounts. The deployed limits are 3/day per user and 20/day for the app owner.
+No API keys or `.env` file are needed. Exa, OpenAI and email go through the DeepSpace integration proxy, billed to the app owner. `npx deepspace dev start` writes a `.dev.vars` file with the platform values it needs: auth keys, owner ID and owner token. That file is git-ignored and rewritten on every run, so don't edit it or commit it. This app defines no secrets of its own. If it needed one, it would go in the app's secret store with `npx deepspace secrets set KEY`, not in the repo.
+
+## Deploy
+
+The deployed app is already registered under the author's account (`DEEPSPACE_APP_ID` in `wrangler.toml`), so a plain deploy only works for that account:
+
+```bash
+git add -A && git commit -m "…"   # deploy refuses uncommitted changes
+npx deepspace deploy              # → https://decision-desk.app.space
+npx deepspace releases            # what's live; `npx deepspace rollback <id>` to go back
+```
+
+To deploy **your own copy** under your own account:
+
+```bash
+npx deepspace auth login
+npx deepspace app init --new-id     # new app id: separate data, secrets and registration
+# edit `name` (and APP_NAME) in wrangler.toml to an unused name, e.g. "decision-desk-yourname"
+git add -A && git commit -m "Fork as my own app"
+npx deepspace deploy                # → https://<your-name>.app.space
+```
+
+Your copy starts empty. Sign in, create and research a decision, then click **Use as the reviewers' sample** on it so **Try a ready-made example** works for others. As the owner, you pay for its research and email.
+
+**What was actually run:**
+- **From a clean clone (Nov 22, 2026):** `npm ci`, `npm run type-check`, `npm run lint` and `npm run test:unit` (96 passing).
+- **In the original working copy:** `auth login`, `dev start` and `deploy`, which is how the live site was deployed.
+- **Not tried:** the `--new-id` fork path. Those steps come from the CLI's own `--help`.
 
 ## Tests
 
@@ -177,7 +228,10 @@ Done on https://decision-desk.app.space after the last deploy, Nov 22, 2026, wit
 
 ## Next steps
 
-- Let users attach their own source to a cell, verified the same way as AI quotes.
-- Full team review: invite teammates into a decision to correct cells and set their own weights, and show where they disagree. Today they can only respond to the finished decision.
-- A weekly job that re-reads pricing pages and flags cells whose quote no longer appears.
-- An explicit column order for options.
+Known correctness gaps first, then new features:
+
+1. **Plan and price consistency.** A column can still mix plans (for example, a cheaper plan's price under a header naming a pricier plan). Check in code that the price quote mentions the plan named for that option, and flag the cell when it doesn't.
+2. **Add a new source after correcting a cell.** Today a correction keeps the AI's original evidence. Let the user attach the page that supports their correction, verified the same way as AI quotes.
+3. **Explicit option order.** Store a column order on options, as criteria already have, so copies and reloads always show the same column order.
+4. **Team review.** Let teammates into a decision to correct cells and set their own weights, and show where they disagree. Today they can only respond to the finished decision.
+5. **Periodic re-research.** A weekly job that re-reads pricing pages and flags cells whose quote no longer appears.

@@ -186,3 +186,10 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 
 - I verified on https://decision-desk.app.space after the last deploy, with two accounts: the reviewers' sample is set and "Try a ready-made example" works for a second account; a share link opens signed out and stops working when sharing is turned off; an emailed brief's link opens on the live site; team feedback from a second account reaches the author; deleting a test decision works.
 - README's "Final check on the live site" section updated from to-do to done.
+
+## README: costs, deploy, next steps
+
+- I asked for: who pays for Exa / OpenAI / email; what "3 research runs/day" counts; whether retries use the quota; that email turns sharing on and what that means; real deploy and reproduction steps; and Next steps reordered with known correctness gaps first.
+- Agent checked each fact in code before writing it (billing default in `src/integrations.ts`; 2 Exa searches per option + 1 only without a website; OpenAI caps 3,000 / 1,200 output tokens; automatic retry at most once; manual retry only for failed options and free; one email per version) and read the CLI's own help for deploying a separate copy (`app init --new-id`, rename in wrangler.toml).
+- Reproduction: agent cloned the committed repo into a fresh directory and ran `npm ci`, `type-check`, `lint`, `test:unit` → all pass (96 tests). Found that npm 10.9 installs it fine; the npm 11.6 requirement is for scaffolding. `auth login` / `dev start` / `deploy` were run by me in the original working copy; the `--new-id` fork path is documented from `--help` and marked as not tried.
+- Next steps now: plan/price consistency → new source after a correction → explicit option order → team review → periodic re-research.
