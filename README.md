@@ -99,18 +99,73 @@ Under `deepspace dev` the research limit is raised to 50/day so you can test wit
 
 ## Tests
 
-Unit tests cover the parts where a silent bug would mislead a user:
+### Automated
+
+| Command | What it does |
+|---|---|
+| `npm run test:unit` | Vitest unit tests: 93 for this app, plus 3 that came with the DeepSpace scaffold |
+| `npm run type-check` | TypeScript check (`tsc --noEmit`) |
+| `npm run lint` | ESLint over the whole repo |
+| `npm run validate` | Type check and unit tests together |
+
+What the unit tests cover, where a silent bug would mislead a user:
 - weighted scoring
 - input validation
 - quote verification
 - search planning
 - model-output parsing
-- the full research pipeline, against a fake store and scripted Exa/OpenAI replies
 - snapshot freezing and the brief's citations, HTML escaping and fallback
 - share tokens and the shared-snapshot lookup (one snapshot per token, nothing once sharing is off)
 - teammate feedback validation
 - email recipients and the email link origin
 - copying the sample, and deleting a decision with everything it owns
+- the research pipeline end to end (search → extract → verify → save, retries, keeping user corrections)
+
+**None of these tests call a real service.** The research pipeline test runs against an in-memory fake record store, with scripted Exa and OpenAI replies. Nothing in the automated suite checks the real Exa, OpenAI or email integrations, or the platform's permission rules (RBAC). Those were checked by hand; see below.
+
+The Playwright end-to-end suites that came with the scaffold (`npm test`, files in `tests/`) were not maintained or run for this project.
+
+### Manual checks
+
+Run with two Google accounts on the local dev server (`deepspace dev`), against the real Exa, OpenAI and email integrations, on Nov 21–22, 2026, unless noted. Details and the problems they turned up are in [`notes/log.md`](notes/log.md).
+
+- **Platform:** a throwaway job showed that a server action can queue a job, and that the job's record writes reach the page live.
+- **Research (also on the live site, Nov 22):**
+  - options move through their statuses on their own, and the table fills in
+  - "Quote verified" quotes were found on their source pages with Cmd+F
+  - a "Needs checking" quote was confirmed to be missing from its page
+- **Server-side limits:** calling the create action from the browser console with 4 options was rejected.
+- **Two-account isolation:** a second account gets "not found" for my decisions, and can't open my snapshots by ID.
+- **Review:**
+  - corrections survive a research re-run
+  - flags and weights update the summary and ranking immediately
+  - corrected cells drop the AI's badge
+- **Snapshots:**
+  - later edits don't change them
+  - `[n]` citations land on the cells that support the sentence
+- **Sharing:**
+  - a link opens signed out
+  - turning sharing off kills the link
+  - turning it on again gives a new link, and the old one stays dead
+- **Email:** it arrives, and its link opens the shared decision.
+- **Failure recovery:** with an invalid model name, each option failed with a readable message and a Retry button. After restoring the name, Retry completed.
+- **Delete:** removes the decision with its snapshots, whose links stop working. The reviewers' sample can't be deleted, and Delete is disabled while research runs.
+- **Team feedback:**
+  - a second account's response reaches the author live
+  - changing it updates the same entry
+  - signed-out visitors are asked to sign in
+- **Mobile:** layout checked at phone width in Chrome DevTools.
+- **Secrets:** none in tracked files or git history.
+
+### Final check on the live site
+
+Done on https://decision-desk.app.space after the last deploy, Nov 22, 2026, with two accounts:
+
+- [x] The reviewers' sample is set, and "Try a ready-made example" works for a second account
+- [x] A share link opens signed out, and turning sharing off kills it
+- [x] An emailed brief's link opens on the live site
+- [x] Team feedback from a second account reaches the author
+- [x] Deleting a test decision works
 
 ## Known limitations
 

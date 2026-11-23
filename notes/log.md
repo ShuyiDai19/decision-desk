@@ -175,3 +175,14 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 - Cost: links shared before this change stop working (only test data so far).
 - Agent verified: tsc, eslint, 93/93 tests, `lintSchemas` clean.
 - I verified: turned sharing on → the link is /share/<token> with the new explanation under it; opened it signed out in a private window → brief and table shown; a second account opening my /s/<id> → "Only its author can open this page"; sharing off → the old link says it was turned off or replaced; on again → a new link works and the old one still doesn't; emailed the brief to the second account → the email's /share/ link opened (after restarting the dev server; it first showed the app's 404 because the server was started before the new page existed); feedback through the share link still reached the author live.
+
+## README: tests split into automated and manual
+
+- Removed the README's "Agent assistance and my verification" section (that belongs in the submission note and this log); its hand-checked items moved into Tests → Manual checks.
+- Tests now has three parts: Automated (the real commands: `test:unit`, `type-check`, `lint`, `validate`; that the pipeline test uses a fake store and scripted Exa/OpenAI replies; that no automated test touches real integrations or RBAC; that the scaffold's Playwright suites weren't run), Manual checks (environment and dates; which ones were also done on the live site), and a final live-site check left as an unticked to-do until it's done.
+- Before writing "lint passes", the agent ran `eslint .` over the whole repo (earlier runs covered only `src/`) and `tsc --noEmit`: both clean.
+
+## Final check on the live site (Nov 22, 2026)
+
+- I verified on https://decision-desk.app.space after the last deploy, with two accounts: the reviewers' sample is set and "Try a ready-made example" works for a second account; a share link opens signed out and stops working when sharing is turned off; an emailed brief's link opens on the live site; team feedback from a second account reaches the author; deleting a test decision works.
+- README's "Final check on the live site" section updated from to-do to done.
