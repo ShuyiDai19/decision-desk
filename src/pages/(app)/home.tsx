@@ -25,9 +25,9 @@ function SignedOutIntro() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-6 py-24">
       <h1 className="text-4xl font-bold tracking-tight">Decide with evidence, not vibes.</h1>
       <p className="text-lg text-muted-foreground">
-        Describe a decision and the options you are weighing. Decision Desk reads each option&apos;s official
-        pages, builds a comparison table where every cell cites its source, and lets you correct it before you
-        choose.
+        Describe a decision and the options you are weighing. Decision Desk searches each option&apos;s official
+        pages first, builds a comparison table that shows the source behind each answer and marks what it couldn&apos;t
+        check, and lets you correct it before you choose.
       </p>
       <div>
         <Button size="lg" onClick={() => setShowAuth(true)}>

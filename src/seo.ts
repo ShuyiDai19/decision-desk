@@ -27,7 +27,7 @@ declare const __DEEPSPACE_SITE_ORIGIN__: string | undefined
 export const seo = {
   title: `${APP_NAME} | Evidence-backed comparisons for team decisions`,
   description:
-    'Compare two or three options on what matters to your team. Every cell quotes the official page it came from, so you can check it, correct it, and decide.',
+    'Compare two or three options on what matters to your team. Answers show their source quote where one was found and flag what couldn’t be checked, so you can correct them and decide.',
   /** Public origin for canonical URLs, og:url, and the sitemap — no trailing
    *  slash. Replace with the custom domain once one is attached, e.g.
    *  'https://www.example.com'. */

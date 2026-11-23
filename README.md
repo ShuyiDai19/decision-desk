@@ -2,7 +2,7 @@
 
 **Live:** https://decision-desk.app.space
 
-Decision Desk helps one person research a choice between two or three products for their team, then share a cited decision their teammates can respond to. You name the options and what matters to you. For each option it reads the official site, picks one plan, and fills a comparison table where **every cell quotes the page it came from**. The quotes are then **checked in code** against the page text. You review the table, correct what's wrong, set weights, and freeze the result as a shareable, cited decision brief. Teammates who open it can say whether they agree or have concerns.
+Decision Desk helps one person research a choice between two or three products for their team, then share a cited decision their teammates can respond to. You name the options and what matters to you. For each option it searches the official site first, asks the model to compare a single plan, and fills a comparison table that **shows the quote and source behind each answer** where one was found. The quotes are then **checked in code** against the page text, and anything that fails the check, or wasn't found at all, is marked as such. You review the table, correct what's wrong, set weights, and freeze the result as a shareable, cited decision brief. Teammates who open it can say whether they agree or have concerns.
 
 The AI drafts and you decide. The interface is built so you can see exactly where the draft might be wrong.
 
@@ -20,8 +20,8 @@ To run research yourself: **New decision → Use an example → Create → Resea
 
 ```
 create decision ──▶ startResearch (action) ──▶ one background job per option
-                                                 │  Exa search, scoped to the official domain
-                                                 │  OpenAI extraction: one plan, one claim per criterion
+                                                 │  Exa search, official domain first
+                                                 │  OpenAI extraction: asked for one plan, one claim per criterion
                                                  │  quote check in code (normalised substring match)
                                                  ▼
                     live progress + comparison table (realtime records)
@@ -36,7 +36,7 @@ create decision ──▶ startResearch (action) ──▶ one background job pe
 ### What "Quote verified" means
 The model must copy a short quote (20–200 characters) verbatim from the page that supports its answer. `src/research/verify.ts` then checks that the quote actually appears in that page's text. It ignores only case, whitespace, quote and dash styles, and a trailing period. If the quote isn't there, the cell says **Needs checking**.
 
-It proves the quote exists. **It does not prove the summary is right.** The model can attach a real quote to a wrong conclusion. That's why every cell shows its evidence, and why correcting and flagging are first-class features.
+It proves the quote exists. **It does not prove the summary is right.** The model can attach a real quote to a wrong conclusion. That's why the evidence is shown next to each answer, and why correcting and flagging are first-class features.
 
 ## DeepSpace: what's used and why
 

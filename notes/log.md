@@ -155,3 +155,8 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
   - Only shared snapshots accept feedback, signed in only, not from the author. The name is read from the profile on the server, so it can't be faked.
   - "I have concerns" requires a comment, so the author knows what to act on.
 - I verified: shared a snapshot and opened it with a second account → "I have concerns" without a comment asked for one; with a comment it sent, and the author's Team feedback panel updated live with the second account's name. Changing the response to "I agree" kept a single, updated entry. Signed out, the link showed "Sign in to respond"; with the share link off the form didn't appear; the author never sees the form on their own decision.
+
+## Wording matches what the app actually does
+
+- I noticed the opening descriptions promised more than the limitations section admits: "reads the official site" (search is unscoped when no official domain is found), "picks one plan" (a column can still mix plans), "every cell quotes the page" (not-found cells and corrected cells have no AI quote). I proposed rewording them as "searches the official site first", "asks the model to compare a single plan", and "shows the quote and source where one was found, and marks what failed the check or wasn't found".
+- Agent found the same overclaim in more places and fixed all of them: README (intro, flow diagram, "what Quote verified means"), landing page (subtitle, step 1, footnote), signed-out home intro, SEO description, and the submission note (What I built, main tradeoff). tsc and eslint clean.

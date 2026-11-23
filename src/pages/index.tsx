@@ -14,7 +14,7 @@ const STEPS = [
   {
     icon: Search,
     title: 'Research with receipts',
-    body: 'For each option, Decision Desk reads the official site, picks one plan, and fills one cell per criterion with a quote from the page.',
+    body: 'For each option, Decision Desk searches the official site first, asks the AI to compare a single plan, and fills one cell per criterion with a quote and its source where one is found.',
   },
   {
     icon: BadgeCheck,
@@ -51,7 +51,8 @@ export default function Landing() {
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Decide with evidence, not vibes.</h1>
               <p className="text-lg text-muted-foreground">
                 Comparing tools for your team? Name two or three options and what matters. You get a comparison table
-                where every cell quotes its source, and you stay in charge of the conclusion.
+                that shows the source behind each answer and marks what it couldn’t check, and you stay in charge of the
+                conclusion.
               </p>
               <div>
                 <Link
@@ -115,7 +116,7 @@ export default function Landing() {
 
           <p className="mt-16 text-xs text-muted-foreground">
             The AI drafts; it can be wrong. “Quote verified” means the quote is on the page, not that the summary is
-            right, which is why every cell shows its evidence.
+            right, which is why each answer shows its evidence.
           </p>
         </main>
       </div>
