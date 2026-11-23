@@ -13,7 +13,7 @@ import { callAction } from '@/lib/call-action'
 import { MAX_COMMENT, validateFeedback } from '@/lib/feedback'
 import type { Feedback, Stance } from '../../schemas/feedback-schema'
 
-export function FeedbackForm({ snapshotId }: { snapshotId: string }) {
+export function FeedbackForm({ snapshotId, shareToken }: { snapshotId: string; shareToken: string }) {
   const { isSignedIn, userId } = useAuthStatus()
   const mine = useQuery<Feedback>('feedback', { where: { snapshotId }, limit: 5 }).records.find(
     (r) => r.data.authorId === userId,
@@ -49,7 +49,7 @@ export function FeedbackForm({ snapshotId }: { snapshotId: string }) {
     }
     setBusy(true)
     setError('')
-    const res = await callAction('submitFeedback', { snapshotId, ...parsed.value })
+    const res = await callAction('submitFeedback', { snapshotId, shareToken, ...parsed.value })
     setBusy(false)
     if (!res.success) {
       setError(res.error)

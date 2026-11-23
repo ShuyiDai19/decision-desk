@@ -1,6 +1,10 @@
 /**
- * Owner-only controls on a snapshot: turn the public link on/off, copy it,
- * and email the brief (self + up to 3 teammates, confirmed before sending).
+ * Owner-only controls on a snapshot: turn the share link on/off, copy it, and
+ * email the brief (self + up to 3 teammates, confirmed before sending).
+ *
+ * What the copy promises must match src/lib/share.ts and the snapshots RBAC:
+ * only people with the link can open it; it is never listed; turning it off
+ * kills the link, and turning it on again makes a new one.
  */
 
 import { useState } from 'react'
@@ -14,8 +18,8 @@ import type { Snapshot } from '../../schemas/snapshots-schema'
 
 export function ShareControls({ snapshot }: { snapshot: RecordData<Snapshot> }) {
   const { user } = useAuthProfileReady({ requireUser: true })
-  const isPublic = snapshot.data.visibility === 'public'
-  const link = `${window.location.origin}/s/${snapshot.recordId}`
+  const isPublic = snapshot.data.visibility === 'public' && !!snapshot.data.shareToken
+  const link = isPublic ? `${window.location.origin}/share/${snapshot.data.shareToken}` : ''
 
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -69,17 +73,24 @@ export function ShareControls({ snapshot }: { snapshot: RecordData<Snapshot> }) 
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
           <Label htmlFor="share-switch" className="flex items-center gap-2">
-            <Link2 className="size-4" /> Anyone with the link can view
+            <Link2 className="size-4" /> Share with a link
           </Label>
           <Switch id="share-switch" checked={isPublic} disabled={busy} onCheckedChange={(v: boolean) => toggle(v)} />
         </div>
         {isPublic ? (
-          <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">{link}</code>
-            <Button size="sm" variant="outline" onClick={copy}>
-              <Copy /> {copied ? 'Copied' : 'Copy'}
-            </Button>
-          </div>
+          <>
+            <div className="flex items-center gap-2">
+              <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">{link}</code>
+              <Button size="sm" variant="outline" onClick={copy}>
+                <Copy /> {copied ? 'Copied' : 'Copy'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Anyone you give this link to can view this version, including your question and context, without signing
+              in. It isn’t listed or searchable anywhere. Turning sharing off disables the link; turning it on again
+              creates a new one.
+            </p>
+          </>
         ) : (
           <p className="text-xs text-muted-foreground">Only you can see this version.</p>
         )}
@@ -101,7 +112,9 @@ export function ShareControls({ snapshot }: { snapshot: RecordData<Snapshot> }) 
                 <li key={e}>{e}</li>
               ))}
             </ul>
-            <p className="text-xs text-muted-foreground">The email links here, so sending turns on the share link.</p>
+            <p className="text-xs text-muted-foreground">
+              The email includes the share link, so sending turns sharing on. Anyone the email reaches can open the decision.
+            </p>
             <div className="flex gap-2">
               <Button size="sm" onClick={send} loading={busy} disabled={busy}>
                 Send to {confirmList.length} {confirmList.length === 1 ? 'person' : 'people'}

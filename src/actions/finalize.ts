@@ -2,8 +2,8 @@
  * Finalizing, sharing and emailing a decision.
  *
  *   finalizeDecision       freeze the reviewed table into a snapshot + brief
- *   setSnapshotVisibility  turn the read-only share link on or off
- *   emailSnapshot          email the brief (makes the link public so it works)
+ *   setSnapshotVisibility  turn the share link on (new token) or off (token cleared)
+ *   emailSnapshot          email the brief with its share link (creates one if needed)
  *
  * Actions run with record RBAC off, so each one loads the record and checks
  * ownerId against the caller before doing anything.
@@ -23,6 +23,7 @@ import {
   type SnapshotPayload,
 } from '../lib/brief'
 import { parseRecipients } from '../lib/recipients'
+import { generateShareToken } from '../lib/share'
 import { RESEARCH_MODEL } from '../research/extract'
 import type { Decision } from '../schemas/decisions-schema'
 import type { Criterion } from '../schemas/criteria-schema'
@@ -138,7 +139,9 @@ export const setSnapshotVisibility: ActionHandler<Env> = async ({ userId, params
   if (visibility !== 'public' && visibility !== 'private') return fail('Invalid visibility.', 'invalid_input')
   const snap = await ownedSnapshot(tools, userId, str(params.snapshotId))
   if (!snap) return fail('Snapshot not found.', 'not_found')
-  const r = await tools.update('snapshots', snap.recordId, { visibility })
+  // A fresh token every time sharing is turned on, so links from before an "off" never work again.
+  const shareToken = visibility === 'public' ? generateShareToken() : ''
+  const r = await tools.update('snapshots', snap.recordId, { visibility, shareToken })
   return r.success ? { success: true, data: { visibility } } : r
 }
 
@@ -151,16 +154,18 @@ export const emailSnapshot: ActionHandler<Env> = async ({ userId, params, tools,
   const payload = readPayload(snap.data.payload)
   if (!payload) return fail('This snapshot could not be read.', 'invalid_state')
 
-  // The email links to the snapshot, so the link has to work for the recipients.
-  if (snap.data.visibility !== 'public') {
-    const r = await tools.update('snapshots', snap.recordId, { visibility: 'public' })
+  // The email carries the share link, so sharing has to be on. Reuse the current link if there is one.
+  let shareToken = snap.data.visibility === 'public' ? snap.data.shareToken : ''
+  if (!shareToken) {
+    shareToken = generateShareToken()
+    const r = await tools.update('snapshots', snap.recordId, { visibility: 'public', shareToken })
     if (!r.success) return r
   }
 
   const me = await tools.get<{ email?: string; name?: string }>('users', userId)
   const replyTo = me.success ? me.data.record.data.email : undefined
   const from = me.success ? me.data.record.data.name || replyTo : undefined
-  const link = `${linkOrigin(params.origin, env.APP_NAME)}/s/${snap.recordId}`
+  const link = `${linkOrigin(params.origin, env.APP_NAME)}/share/${shareToken}`
   const chosen = payload.candidates.find((c) => c.id === payload.chosenCandidateId)?.name ?? 'a decision'
   const blocks = parseBrief(snap.data.briefMarkdown)
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')

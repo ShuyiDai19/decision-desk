@@ -1,5 +1,5 @@
 import type { CollectionSchema } from 'deepspace/schema'
-import { ownerColumnStamped, plain } from './permissions'
+import { ownerColumnStamped, ownerOnly, plain } from './permissions'
 
 export const VISIBILITIES = ['private', 'public'] as const
 export type Visibility = (typeof VISIBILITIES)[number]
@@ -13,6 +13,8 @@ export type Snapshot = {
   payload: unknown
   briefMarkdown: string
   visibility: Visibility
+  /** Secret part of the share link; '' while sharing is off. See src/lib/share.ts. */
+  shareToken: string
   emailedAt: string
 }
 
@@ -20,9 +22,10 @@ export type Snapshot = {
  * An immutable copy of a finalized decision. Shared links and emails point
  * here, so later edits to the live decision never change what was shared.
  *
- * Known tradeoff: 'published' lets signed-out visitors read every public
- * snapshot, not just the one they were linked to. Snapshot ids are
- * unguessable and nothing sensitive is stored, so this is acceptable here.
+ * Readable by its owner only. Others reach a shared snapshot solely through
+ * its share link (/share/<token>), served one at a time by the
+ * GET /api/shared/:token route, so snapshots can't be listed or browsed.
+ * `visibility` is the owner's sharing switch; `shareToken` is set while it is on.
  */
 export const snapshotsSchema: CollectionSchema = {
   name: 'snapshots',
@@ -39,16 +42,11 @@ export const snapshotsSchema: CollectionSchema = {
       interpretation: { kind: 'select', options: [...VISIBILITIES] },
       default: 'private',
     },
+    { name: 'shareToken', storage: 'text', interpretation: plain, default: '' },
     { name: 'emailedAt', storage: 'text', interpretation: { kind: 'datetime' }, default: '' },
   ],
   ownerField: 'ownerId',
-  visibilityField: { field: 'visibility', value: 'public' },
   uniqueOn: ['decisionId', 'version'],
-  // Visibility and emailedAt change only through server actions.
-  permissions: {
-    '*': { read: 'published', create: false, update: false, delete: false },
-    viewer: { read: 'published', create: false, update: false, delete: false },
-    member: { read: 'published', create: false, update: false, delete: false },
-    admin: { read: true, create: true, update: true, delete: true },
-  },
+  // Owner-only reads; visibility, shareToken and emailedAt change only through server actions.
+  permissions: ownerOnly(),
 }

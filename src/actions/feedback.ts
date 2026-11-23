@@ -3,14 +3,17 @@
  * ("I agree" / "I have concerns" + comment). Submitting again updates the
  * same response.
  *
- * Only shared (public) snapshots accept feedback, and not from their author.
+ * Only someone holding the current share link can respond (the token is
+ * checked, not just the snapshot id), and not the decision's author.
  * The responder's name comes from their profile on the server, so it can't
  * be faked from the browser. Actions run with RBAC off; checks are here.
  */
 
+import { timingSafeEqualStrings } from 'deepspace/worker'
 import type { ActionHandler } from 'deepspace/worker'
 import type { Env } from '../../worker'
 import { displayName, validateFeedback } from '../lib/feedback'
+import { isShareTokenShape } from '../lib/share'
 import type { Feedback } from '../schemas/feedback-schema'
 import type { Snapshot } from '../schemas/snapshots-schema'
 
@@ -21,10 +24,12 @@ export const submitFeedback: ActionHandler<Env> = async ({ userId, params, tools
   if (!parsed.ok) return fail(parsed.error, 'invalid_input')
 
   const snapshotId = typeof params.snapshotId === 'string' ? params.snapshotId : ''
+  const token = params.shareToken
+  const unavailable = fail('This share link no longer works, so it can’t take feedback.', 'not_found')
+  if (!snapshotId || !isShareTokenShape(token)) return unavailable
   const got = await tools.get<Snapshot>('snapshots', snapshotId)
-  if (!snapshotId || !got.success || got.data.record.data.visibility !== 'public') {
-    return fail('This decision isn’t shared, so it can’t take feedback.', 'not_found')
-  }
+  if (!got.success || got.data.record.data.visibility !== 'public') return unavailable
+  if (!(await timingSafeEqualStrings(got.data.record.data.shareToken ?? '', token))) return unavailable
   const snap = got.data.record
   if (snap.data.ownerId === userId) return fail('This is your own decision.', 'own_decision')
 

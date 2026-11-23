@@ -122,7 +122,9 @@ export function FinalizePanel({ decisionId, criteria, candidates, claims, snapsh
                   Version {s.data.version} ·{' '}
                   {candidates.find((c) => c.recordId === s.data.chosenCandidateId)?.data.name ?? 'Unknown'} ·{' '}
                   {formatDate(s.createdAt)}
-                  {s.data.visibility === 'public' && <span className="text-xs text-muted-foreground">· shared</span>}
+                  {s.data.visibility === 'public' && !!s.data.shareToken && (
+                    <span className="text-xs text-muted-foreground">· shared by link</span>
+                  )}
                 </Link>
               </li>
             ))}

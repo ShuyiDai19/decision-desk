@@ -28,7 +28,7 @@ create decision ──▶ startResearch (action) ──▶ one background job pe
                                                  │  user corrects / flags cells, sets weights
                                                  ▼
                     finalizeDecision (action) ──▶ frozen snapshot + cited brief
-                                                 ├─▶ read-only share link (/s/:id)
+                                                 ├─▶ share link (/share/<token>), readable by link only
                                                  ├─▶ email (self + up to 3 teammates)
                                                  └─▶ teammates respond: agree / concerns (author sees all)
 ```
@@ -38,12 +38,22 @@ The model must copy a short quote (20–200 characters) verbatim from the page t
 
 It proves the quote exists. **It does not prove the summary is right.** The model can attach a real quote to a wrong conclusion. That's why the evidence is shown next to each answer, and why correcting and flagging are first-class features.
 
+## Sharing
+
+Sharing is **by link**, not public publishing:
+
+- A snapshot is readable only by its author. Nobody can list or browse other people's snapshots.
+- Turning sharing on creates a link with a random 32-character token (`/share/<token>`). The server returns exactly that one snapshot for that token (`GET /api/shared/:token`), without the author's ID.
+- **Anyone you give the link to can view the decision, including your question and context, without signing in.** Treat the link like a document link: only send it to people who should see it.
+- Turning sharing off disables the link. Turning it on again creates a new link, so old links never work again. Emailing a brief turns sharing on and includes the link.
+- Teammates' feedback needs the current link's token, not just the snapshot ID.
+
 ## DeepSpace: what's used and why
 
 | Piece | Used for |
 |---|---|
 | **Auth** (Google sign-in) | Every decision belongs to a user; signed-out visitors only see shared snapshots. |
-| **Records + per-collection RBAC** | 8 collections. The browser never creates or deletes rows. It may only update listed fields on its own rows (`writableFields`), so a user can correct a cell's value but can't edit its quote, source or badge. Feedback uses `ownerField` + `collaboratorsField`, so the author reads every response and a teammate only their own. |
+| **Records + per-collection RBAC** | 8 collections. The browser never creates or deletes rows. It may only update listed fields on its own rows (`writableFields`), so a user can correct a cell's value but can't edit its quote, source or badge. Feedback uses `ownerField` + `collaboratorsField`, so the author reads every response and a teammate only their own. Snapshots are owner-only; see **Sharing** below. |
 | **Realtime sync** | Research progress and table updates appear live via `useQuery`; no polling. |
 | **Server actions** | Everything that needs validation or spends money: create, start research, finalize, share, email, feedback, sample copy. Actions run with RBAC off, so each one checks ownership itself. |
 | **Background jobs** | One `research.candidate` job per option, with one automatic retry. Work outlives the request, and a failed option can be retried alone. |
@@ -68,7 +78,8 @@ src/research/         search planning, extraction prompt + parsing, quote verifi
 src/lib/score.ts      weighted scoring (shared by the page and the snapshot)
 src/lib/brief.ts      snapshot freezing, brief prompt, citation parsing, email rendering
 src/components/       comparison table, cells, research controls, snapshot views
-src/pages/            landing (/), decisions, /decisions/new, /decisions/:id, /s/:id
+src/pages/            landing (/), decisions, /decisions/new, /decisions/:id, /s/:id (owner), /share/:token
+src/server/share-routes.ts  GET /api/shared/:token, the only public read of a snapshot
 notes/log.md          build log: what the agent did, what I verified, what changed
 ```
 
@@ -96,6 +107,7 @@ Unit tests cover the parts where a silent bug would mislead a user:
 - model-output parsing
 - the full research pipeline, against a fake store and scripted Exa/OpenAI replies
 - snapshot freezing and the brief's citations, HTML escaping and fallback
+- share tokens and the shared-snapshot lookup (one snapshot per token, nothing once sharing is off)
 - teammate feedback validation
 - email recipients and the email link origin
 - copying the sample, and deleting a decision with everything it owns
@@ -105,7 +117,6 @@ Unit tests cover the parts where a silent bug would mislead a user:
 - **Quote verified ≠ correct.** See above. Most remaining errors are a real quote attached to a wrong conclusion (for example, a cheaper plan's price). The review step is the mitigation.
 - **Model output varies between runs.** The one-plan-per-option rule helps, but a column can still mix plans.
 - **Some quotes contain clutter** from page text extraction, such as glued words or markdown markers.
-- **Shared links:** public snapshots can be listed by anyone, not just the one they were linked to. IDs are unguessable and snapshots hold only public product facts.
 - **Copied samples** may show columns in a different order.
 - **Team feedback is private to the author:** teammates see only their own response, not each other's. That keeps comments private, but the team can't see a shared tally.
 

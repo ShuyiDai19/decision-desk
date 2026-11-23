@@ -63,7 +63,7 @@ export default function DecisionPage() {
                 decisionId={id}
                 question={decision.data.question}
                 snapshotCount={snapshots.records.length}
-                sharedCount={snapshots.records.filter((s) => s.data.visibility === 'public').length}
+                sharedCount={snapshots.records.filter((s) => s.data.visibility === 'public' && !!s.data.shareToken).length}
                 disabled={candidates.records.some((c) => ['queued', 'searching', 'extracting'].includes(c.data.researchStatus))}
               />
             </span>

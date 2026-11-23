@@ -160,3 +160,18 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 
 - I noticed the opening descriptions promised more than the limitations section admits: "reads the official site" (search is unscoped when no official domain is found), "picks one plan" (a column can still mix plans), "every cell quotes the page" (not-found cells and corrected cells have no AI quote). I proposed rewording them as "searches the official site first", "asks the model to compare a single plan", and "shows the quote and source where one was found, and marks what failed the check or wasn't found".
 - Agent found the same overclaim in more places and fixed all of them: README (intro, flow diagram, "what Quote verified means"), landing page (subtitle, step 1, footnote), signed-out home intro, SEO description, and the submission note (What I built, main tradeoff). tsc and eslint clean.
+
+## Sharing by link instead of public listing
+
+- I flagged that "IDs are unguessable" was no protection while snapshots could be listed, and that snapshots aren't only public facts (question, context and correction notes can be internal). Asked the agent to judge whether to fix it, given later features.
+- Agent's check found it was worse than a listing risk: `/s/:id` ran `useQuery('snapshots', { limit: 500 })` and picked the snapshot in the browser, so opening any shared link downloaded every public snapshot from every user.
+- Chosen behaviour: link sharing, not public publishing.
+  - snapshots RBAC is now owner-only (`ownerOnly()`), `visibilityField` removed: nobody else can list or read them.
+  - New `shareToken` column (32-char random, 192 bits). Turning sharing on issues a new token; turning it off clears it, so old links die for good.
+  - New unauthenticated route `GET /api/shared/:token` (`src/server/share-routes.ts`) returns exactly one snapshot, without the owner id; logic in `src/lib/share.ts` re-checks the token and the sharing flag on the row (5 tests).
+  - New page `/share/:token` for viewers; `/s/:id` is now the owner's page only.
+  - Later features updated to match: emails carry `/share/<token>`; teammate feedback must present the current token (timing-safe compare), not just the snapshot id; "shared" labels and the delete confirmation count only snapshots with a live link.
+  - The share panel, email confirmation and README now say the same thing: anyone with the link can view, including question and context, without signing in; never listed; off disables the link, on makes a new one.
+- Cost: links shared before this change stop working (only test data so far).
+- Agent verified: tsc, eslint, 93/93 tests, `lintSchemas` clean.
+- I verified: turned sharing on → the link is /share/<token> with the new explanation under it; opened it signed out in a private window → brief and table shown; a second account opening my /s/<id> → "Only its author can open this page"; sharing off → the old link says it was turned off or replaced; on again → a new link works and the old one still doesn't; emailed the brief to the second account → the email's /share/ link opened (after restarting the dev server; it first showed the app's 404 because the server was started before the new page existed); feedback through the share link still reached the author live.
