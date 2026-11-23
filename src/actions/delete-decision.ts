@@ -1,6 +1,7 @@
 /**
  * deleteDecision: permanently delete one of the caller's decisions, with its
- * criteria, options, sources, cells and snapshots (shared links stop working).
+ * criteria, options, sources, cells, snapshots and teammates' feedback
+ * (shared links stop working).
  *
  * Refused while research is running (jobs would write into deleted rows) and
  * for the current reviewers' sample (the home-page example would break).

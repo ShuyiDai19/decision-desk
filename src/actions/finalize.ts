@@ -169,9 +169,9 @@ export const emailSnapshot: ActionHandler<Env> = async ({ userId, params, tools,
 <p style="color:#555">${esc(from ?? 'A teammate')} shared a decision from Decision Desk.</p>
 <h2 style="margin:8px 0">${esc(payload.question)}</h2>
 ${briefToHtml(blocks, payload.claims)}
-<p style="margin-top:24px"><a href="${esc(link)}" style="color:#6366f1">See the full comparison with every source →</a></p>
+<p style="margin-top:24px"><a href="${esc(link)}" style="color:#6366f1">See the full comparison with every source, and say whether you agree →</a></p>
 </div>`
-  const text = `${from ?? 'A teammate'} shared a decision from Decision Desk.\n\n${payload.question}\n\n${briefToText(blocks)}\n\nFull comparison with sources: ${link}`
+  const text = `${from ?? 'A teammate'} shared a decision from Decision Desk.\n\n${payload.question}\n\n${briefToText(blocks)}\n\nFull comparison with sources, and a place to say whether you agree: ${link}`
 
   const sent = await tools.integration('email/send', {
     to: parsed.emails,

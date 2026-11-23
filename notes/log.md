@@ -144,3 +144,14 @@ Each entry: what the agent did · what I verified myself · what I changed or ov
 - Before: a failed option's card showed the raw error, e.g. "Integration call exa/search failed: …".
 - Agent: `src/research/errors.ts` maps raw errors to one actionable sentence (search failed, AI service down, unreadable AI answer, out of credits, rate-limited, timeout, couldn't save, option removed, cancelled; generic fallback). Most specific rule first, so "exa … payment required" says "credits", not "search failed". The raw error goes to the server log via `console.error` with the candidate id; the card only shows the sentence. 12 new tests; 83/83 pass; tsc and eslint clean.
 - I verified: set `RESEARCH_MODEL` to an invalid model name locally and ran research → after the automatic retry, each option's card showed the friendly message with a "Retry this option" button, and the raw error appeared in the dev-server terminal. Restored `gpt-5.4-mini` (checked with `git diff`) and retried an option; it completed.
+
+## Team feedback on shared decisions
+
+- Why: the README said Decision Desk "helps a small team", but teammates could only read the result. I asked whether full collaboration was feasible. It is (DeepSpace has collaborator RBAC), but it would change permissions on all 7 collections, migrate existing rows, and need a way to find teammates by email. I chose the smaller version: teammates respond to a shared decision. Wording in the README and the submission note now says one person decides and the team responds.
+- Agent: new `feedback` collection (agree / concerns + comment, one per person per snapshot); `submitFeedback` action; response form for signed-in viewers of a shared snapshot; live "Team feedback" panel for the author; emails now invite a response; deleting a decision also deletes its feedback. `src/lib/feedback.ts` (5 tests). 88/88 tests, tsc, eslint, `lintSchemas` clean.
+- Decisions:
+  - No change to the existing 7 collections' permissions: the risk stays in one new table.
+  - Read access via `ownerField: snapshotOwnerId` + `collaboratorsField: authorIds`: the author sees every response, a teammate only their own. Comments stay private to the author; the cost is no shared team tally.
+  - Only shared snapshots accept feedback, signed in only, not from the author. The name is read from the profile on the server, so it can't be faked.
+  - "I have concerns" requires a comment, so the author knows what to act on.
+- I verified: _(share a snapshot → second account opens link → "I agree" / "I have concerns" + comment → author's panel updates live; second account changes response → one row, updated; signed-out viewer sees "Sign in to respond"; private snapshot shows no form; author sees no form on their own decision)_

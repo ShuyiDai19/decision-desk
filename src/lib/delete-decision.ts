@@ -17,7 +17,7 @@ export interface DeleteStore {
 }
 
 /** Order matters only in that `decisions` is last; children are independent of each other. */
-export const CHILD_COLLECTIONS = ['claims', 'sources', 'candidates', 'criteria', 'snapshots'] as const
+export const CHILD_COLLECTIONS = ['claims', 'sources', 'candidates', 'criteria', 'feedback', 'snapshots'] as const
 
 const BATCH = 500
 

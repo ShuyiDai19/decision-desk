@@ -2,7 +2,7 @@
 
 **Live:** https://decision-desk.app.space
 
-Decision Desk helps a small team pick between two or three products. You name the options and what matters to you. For each option it reads the official site, picks one plan, and fills a comparison table where **every cell quotes the page it came from**. The quotes are then **checked in code** against the page text. You review the table, correct what's wrong, set weights, and freeze the result as a shareable, cited decision brief.
+Decision Desk helps one person research a choice between two or three products for their team, then share a cited decision their teammates can respond to. You name the options and what matters to you. For each option it reads the official site, picks one plan, and fills a comparison table where **every cell quotes the page it came from**. The quotes are then **checked in code** against the page text. You review the table, correct what's wrong, set weights, and freeze the result as a shareable, cited decision brief. Teammates who open it can say whether they agree or have concerns.
 
 The AI drafts and you decide. The interface is built so you can see exactly where the draft might be wrong.
 
@@ -12,6 +12,7 @@ The AI drafts and you decide. The interface is built so you can see exactly wher
 2. Click **Try a ready-made example**. This copies an already-researched comparison into your account, with no waiting and no research cost.
 3. Open a cell's **Evidence**, correct a cell (✏️), flag one (🚩), change a criterion's weight and watch the ranking move.
 4. Under **Decide**, pick an option and **Finalize**. You get a snapshot with a brief whose `[n]` citations link to the supporting cells. Turn on the share link or email it.
+5. Open the link with a second account: it can answer **I agree** or **I have concerns**, and the author sees the responses live.
 
 To run research yourself: **New decision → Use an example → Create → Research these options**. Each signed-in user gets 3 research runs a day.
 
@@ -28,7 +29,8 @@ create decision ──▶ startResearch (action) ──▶ one background job pe
                                                  ▼
                     finalizeDecision (action) ──▶ frozen snapshot + cited brief
                                                  ├─▶ read-only share link (/s/:id)
-                                                 └─▶ email (self + up to 3 teammates)
+                                                 ├─▶ email (self + up to 3 teammates)
+                                                 └─▶ teammates respond: agree / concerns (author sees all)
 ```
 
 ### What "Quote verified" means
@@ -41,9 +43,9 @@ It proves the quote exists. **It does not prove the summary is right.** The mode
 | Piece | Used for |
 |---|---|
 | **Auth** (Google sign-in) | Every decision belongs to a user; signed-out visitors only see shared snapshots. |
-| **Records + per-collection RBAC** | 7 collections. The browser never creates or deletes rows. It may only update listed fields on its own rows (`writableFields`), so a user can correct a cell's value but can't edit its quote, source or badge. |
+| **Records + per-collection RBAC** | 8 collections. The browser never creates or deletes rows. It may only update listed fields on its own rows (`writableFields`), so a user can correct a cell's value but can't edit its quote, source or badge. Feedback uses `ownerField` + `collaboratorsField`, so the author reads every response and a teammate only their own. |
 | **Realtime sync** | Research progress and table updates appear live via `useQuery`; no polling. |
-| **Server actions** | Everything that needs validation or spends money: create, start research, finalize, share, email, sample copy. Actions run with RBAC off, so each one checks ownership itself. |
+| **Server actions** | Everything that needs validation or spends money: create, start research, finalize, share, email, feedback, sample copy. Actions run with RBAC off, so each one checks ownership itself. |
 | **Background jobs** | One `research.candidate` job per option, with one automatic retry. Work outlives the request, and a failed option can be retried alone. |
 | **Integration: Exa** (`exa/search`) | Finds official pages and returns their text. That text is what quotes are checked against. |
 | **Integration: OpenAI** (`openai/chat-completion`) | Extracts one plan and one claim per criterion, and writes the decision brief. There's no JSON-schema mode, so replies are validated with zod and retried. |
@@ -53,14 +55,14 @@ It proves the quote exists. **It does not prove the summary is right.** The mode
 - **Stripe:** nothing to sell.
 - **LiveKit:** no live audio or video in this workflow.
 - **Managed knowledge:** each decision reads a handful of fresh pages, and the quote check needs the exact page text, not retrieved chunks.
-- **Yjs co-editing:** review is single-user for now; team review is a next step.
+- **Yjs co-editing:** one person edits a decision; teammates respond to the finished result instead (see Next steps).
 - **Cron:** nothing recurring yet. Re-checking prices weekly would be the first use.
 
 ## Code map
 
 ```
-src/schemas/          7 collections + shared ownerOnly() permission helper
-src/actions/          createDecision, deleteDecision, startResearch, finalize/share/email, sample
+src/schemas/          8 collections + shared ownerOnly() permission helper
+src/actions/          createDecision, deleteDecision, startResearch, finalize/share/email, feedback, sample
 src/jobs.ts           research.candidate job → src/research/run-candidate.ts
 src/research/         search planning, extraction prompt + parsing, quote verification
 src/lib/score.ts      weighted scoring (shared by the page and the snapshot)
@@ -94,6 +96,7 @@ Unit tests cover the parts where a silent bug would mislead a user:
 - model-output parsing
 - the full research pipeline, against a fake store and scripted Exa/OpenAI replies
 - snapshot freezing and the brief's citations, HTML escaping and fallback
+- teammate feedback validation
 - email recipients and the email link origin
 - copying the sample, and deleting a decision with everything it owns
 
@@ -104,10 +107,11 @@ Unit tests cover the parts where a silent bug would mislead a user:
 - **Some quotes contain clutter** from page text extraction, such as glued words or markdown markers.
 - **Shared links:** public snapshots can be listed by anyone, not just the one they were linked to. IDs are unguessable and snapshots hold only public product facts.
 - **Copied samples** may show columns in a different order.
+- **Team feedback is private to the author:** teammates see only their own response, not each other's. That keeps comments private, but the team can't see a shared tally.
 
 ## Next steps
 
 - Let users attach their own source to a cell, verified the same way as AI quotes.
-- Team review: invite teammates to a decision, each with their own weights, and show where they disagree.
+- Full team review: invite teammates into a decision to correct cells and set their own weights, and show where they disagree. Today they can only respond to the finished decision.
 - A weekly job that re-reads pricing pages and flags cells whose quote no longer appears.
 - An explicit column order for options.

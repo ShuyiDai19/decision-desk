@@ -12,6 +12,8 @@ import { parseBrief, readPayload } from '@/lib/brief'
 import { BriefView } from '@/components/snapshot/BriefView'
 import { SnapshotTable } from '@/components/snapshot/SnapshotTable'
 import { ShareControls } from '@/components/snapshot/ShareControls'
+import { FeedbackForm } from '@/components/snapshot/FeedbackForm'
+import { FeedbackList } from '@/components/snapshot/FeedbackList'
 import { formatDate } from '@/components/decision/labels'
 import type { Snapshot } from '../../../schemas/snapshots-schema'
 
@@ -74,8 +76,19 @@ export default function SnapshotPage() {
             Numbers in brackets link to the cell below that supports the statement. Facts are as read on the dates shown.
           </p>
         </section>
-        {isOwner && <ShareControls snapshot={snapshot} />}
+        {isOwner && (
+          <div className="flex flex-col gap-6">
+            <ShareControls snapshot={snapshot} />
+            <FeedbackList snapshotId={snapshot.recordId} isPublic={snapshot.data.visibility === 'public'} />
+          </div>
+        )}
       </div>
+
+      {!isOwner && snapshot.data.visibility === 'public' && (
+        <div className="mt-8">
+          <FeedbackForm snapshotId={snapshot.recordId} />
+        </div>
+      )}
 
       <section className="mt-10 flex flex-col gap-3">
         <h2 className="text-lg font-semibold">The comparison behind it</h2>
