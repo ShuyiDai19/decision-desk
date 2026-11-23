@@ -186,7 +186,7 @@ Run with two Google accounts on the local dev server (`deepspace dev`), against 
   - "Quote verified" quotes were found on their source pages with Cmd+F
   - a "Needs checking" quote was confirmed to be missing from its page
 - **Server-side limits:** calling the create action from the browser console with 4 options was rejected.
-- **Two-account isolation:** a second account gets "not found" for my decisions, and can't open my snapshots by ID.
+- **Two-account isolation:** a second account gets "not found" for my decisions, and can't open my snapshots by ID. The app owner's account (admin role) also sees only its own decisions; checked on the live site after fixing a permission bug that had let it see everyone's.
 - **Review:**
   - corrections survive a research re-run
   - flags and weights update the summary and ranking immediately
